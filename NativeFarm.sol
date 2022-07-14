@@ -983,11 +983,9 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
                 profitCheck = unWrappedTokens.sub(user.deposited);
 
                 if (user.referrer != address(0)) {
-                    refCommission = profitCheck
-                        .mul(REFERRAL_PERCENT)
-                        .div(PERCENTS_DIVIDER)
-                        .mul(totalSupply)
-                        .div(wantLockedTotal);
+                    refCommission = (
+                        profitCheck.mul(REFERRAL_PERCENT).div(PERCENTS_DIVIDER)
+                    ).mul(totalSupply).div(wantLockedTotal);
                 }
             }
 
