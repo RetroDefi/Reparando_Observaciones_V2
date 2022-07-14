@@ -1187,6 +1187,21 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     event UpdateControllerFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateCompoundFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateTotalStaked(uint256 indexed oldTotal, uint256 indexed newTotal);
+    event Deposit(
+        address indexed user,
+        uint256 indexed newTotal,
+        uint256 amount
+    );
+    event Withdraw(
+        address indexed user,
+        uint256 indexed newTotal,
+        uint256 amount
+    );
+    event Compound(
+        address indexed user,
+        uint256 indexed newTotal,
+        uint256 amount
+    );
 
     constructor(
         address _nativeFarmAddress,
@@ -1246,10 +1261,12 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     }
 
     // Receives new deposits from user
-    function deposit(
-        address, /*_userAddress*/
-        uint256 wantAmt
-    ) external onlyOwner whenNotPaused returns (uint256) {
+    function deposit(address userAddress, uint256 wantAmt)
+        external
+        onlyOwner
+        whenNotPaused
+        returns (uint256)
+    {
         uint256 _pool = balance();
 
         IERC20(wantAddress).safeTransferFrom(
@@ -1278,6 +1295,8 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
             wantLockedTotal = wantLockedTotal.add(wantAmt);
         }
 
+        emit Deposit(userAddress, wantLockedTotal, wantAmt);
+
         return shares;
     }
 
@@ -1288,10 +1307,11 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     // not used
     function _farm() internal {}
 
-    function withdraw(
-        address, /*_userAddress*/
-        uint256 wrapAmt
-    ) public onlyOwner returns (uint256) {
+    function withdraw(address userAddress, uint256 wrapAmt)
+        public
+        onlyOwner
+        returns (uint256)
+    {
         require(wrapAmt > 0, "_wantAmt <= 0");
 
         uint256 r = (balance().mul(wrapAmt)).div(totalSupply());
@@ -1316,6 +1336,8 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
         sharesTotal = sharesTotal.sub(wrapAmt);
         wantLockedTotal = wantLockedTotal.sub(r);
 
+        emit Withdraw(userAddress, wantLockedTotal, wrapAmt);
+
         IERC20(wantAddress).safeTransfer(nativeFarmAddress, r);
 
         return r;
@@ -1337,15 +1359,24 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
                 ctrlfee = BalanceRewards.mul(controllerFee).div(
                     PERCENT_DIVIDER
                 );
-                IERC20(wantAddress).safeTransfer(govAddress, ctrlfee);
+                wantLockedTotal = wantLockedTotal.sub(ctrlfee);
             }
 
             if (compoundFee > 0) {
                 compfee = BalanceRewards.mul(compoundFee).div(PERCENT_DIVIDER);
+                wantLockedTotal = wantLockedTotal.sub(compfee);
+            }
+
+            emit Compound(msg.sender, wantLockedTotal, compfee);
+
+            if (ctrlfee > 0) {
+                IERC20(wantAddress).safeTransfer(govAddress, ctrlfee);
+            }
+
+            if (compfee > 0) {
                 IERC20(wantAddress).safeTransfer(msg.sender, compfee);
             }
         }
-        wantLockedTotal = IERC20(wantAddress).balanceOf(address(this));
     }
 
     // not used
