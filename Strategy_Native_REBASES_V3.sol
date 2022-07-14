@@ -1548,7 +1548,7 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
     }
 
     // Receives new deposits from user
-    function deposit(address _userAddress, uint256 _wantAmt)
+    function deposit(address userAddress, uint256 wantAmt)
         external
         onlyOwner
         whenNotPaused
@@ -1559,18 +1559,18 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
         IERC20(wantAddress).safeTransferFrom(
             address(msg.sender),
             address(this),
-            _wantAmt
+            wantAmt
         );
 
         uint256 _after = balance();
-        _wantAmt = _after.sub(_pool); // Additional check for deflationary tokens
+        wantAmt = _after.sub(_pool); // Additional check for deflationary tokens
 
         uint256 shares = 0;
 
         if (totalSupply() == 0) {
-            shares = _wantAmt;
+            shares = wantAmt;
         } else {
-            shares = (_wantAmt.mul(totalSupply())).div(_pool);
+            shares = (wantAmt.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
 
@@ -1579,7 +1579,7 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (isNativeVault) {
             _farm();
         } else {
-            wantLockedTotal = wantLockedTotal.add(_wantAmt);
+            wantLockedTotal = wantLockedTotal.add(wantAmt);
         }
 
         return shares;
@@ -1592,15 +1592,15 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
     // not used
     function _farm() internal {}
 
-    function withdraw(address _userAddress, uint256 _wantAmt)
+    function withdraw(address userAddress, uint256 wrapAmt)
         public
         onlyOwner
         returns (uint256)
     {
-        require(_wantAmt > 0, "_wantAmt <= 0");
+        require(wrapAmt > 0, "_wantAmt <= 0");
 
-        uint256 r = (balance().mul(_wantAmt)).div(totalSupply());
-        _burn(msg.sender, _wantAmt);
+        uint256 r = (balance().mul(wrapAmt)).div(totalSupply());
+        _burn(msg.sender, wrapAmt);
 
         uint256 b = IERC20(wantAddress).balanceOf(address(this));
         if (b < r) {
@@ -1614,11 +1614,11 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
             }
         }
 
-        if (_wantAmt > sharesTotal) {
-            _wantAmt = sharesTotal;
+        if (wrapAmt > sharesTotal) {
+            wrapAmt = sharesTotal;
         }
 
-        sharesTotal = sharesTotal.sub(_wantAmt);
+        sharesTotal = sharesTotal.sub(wrapAmt);
         wantLockedTotal = wantLockedTotal.sub(r);
 
         IERC20(wantAddress).safeTransfer(nativeFarmAddress, r);
