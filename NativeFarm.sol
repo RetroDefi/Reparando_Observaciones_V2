@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.6.12;
+pragma solidity >=0.8.1;
 
 // import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol";
 abstract contract Context {
-    function _msgSender() internal view virtual returns (address payable) {
+    function _msgSender() internal view virtual returns (address) {
         return msg.sender;
     }
 }
@@ -26,18 +26,53 @@ library Address {
      *  - an address where a contract will be created
      *  - an address where a contract lived, but was destroyed
      * ====
+     *
+     * [IMPORTANT]
+     * ====
+     * You shouldn't rely on `isContract` to protect against flash loan attacks!
+     *
+     * Preventing calls from contracts is highly discouraged. It breaks composability, breaks support for smart wallets
+     * like Gnosis Safe, and does not provide security since it can be circumvented by calling from a contract
+     * constructor.
+     * ====
      */
     function isContract(address account) internal view returns (bool) {
-        // This method relies on extcodesize, which returns 0 for contracts in
-        // construction, since the code is only stored at the end of the
-        // constructor execution.
+        // This method relies on extcodesize/address.code.length, which returns 0
+        // for contracts in construction, since the code is only stored at the end
+        // of the constructor execution.
 
-        uint256 size;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            size := extcodesize(account)
-        }
-        return size > 0;
+        return account.code.length > 0;
+    }
+
+    /**
+     * @dev Performs a Solidity function call using a low level `call`. A
+     * plain `call` is an unsafe replacement for a function call: use this
+     * function instead.
+     *
+     * If `target` reverts with a revert reason, it is bubbled up by this
+     * function (like regular Solidity function calls).
+     *
+     * Returns the raw returned data. To convert to the expected return value,
+     * use https://solidity.readthedocs.io/en/latest/units-and-global-variables.html?highlight=abi.decode#abi-encoding-and-decoding-functions[`abi.decode`].
+     *
+     * Requirements:
+     *
+     * - `target` must be a contract.
+     * - calling `target` with `data` must not revert.
+     *
+     * _Available since v3.1._
+     */
+    function functionCall(address target, bytes memory data)
+        internal
+        returns (bytes memory)
+    {
+        return
+            functionCallWithValue(
+                target,
+                data,
+                0,
+                "Address: low-level call failed"
+            );
     }
 
     /**
@@ -52,6 +87,31 @@ library Address {
         string memory errorMessage
     ) internal returns (bytes memory) {
         return functionCallWithValue(target, data, 0, errorMessage);
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-}[`functionCall`],
+     * but also transferring `value` wei to `target`.
+     *
+     * Requirements:
+     *
+     * - the calling contract must have an ETH balance of at least `value`.
+     * - the called Solidity function must be `payable`.
+     *
+     * _Available since v3.1._
+     */
+    function functionCallWithValue(
+        address target,
+        bytes memory data,
+        uint256 value
+    ) internal returns (bytes memory) {
+        return
+            functionCallWithValue(
+                target,
+                data,
+                value,
+                "Address: low-level call with value failed"
+            );
     }
 
     /**
@@ -70,35 +130,62 @@ library Address {
             address(this).balance >= value,
             "Address: insufficient balance for call"
         );
-        require(isContract(target), "Address: call to non-contract");
-
-        // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory returndata) = target.call{value: value}(
             data
         );
-        return _verifyCallResult(success, returndata, errorMessage);
+        return
+            verifyCallResultFromTarget(
+                target,
+                success,
+                returndata,
+                errorMessage
+            );
+    }
+
+    function verifyCallResultFromTarget(
+        address target,
+        bool success,
+        bytes memory returndata,
+        string memory errorMessage
+    ) internal view returns (bytes memory) {
+        if (success) {
+            if (returndata.length == 0) {
+                // only check isContract if the call was successful and the return data is empty
+                // otherwise we already know that it was a contract
+                require(isContract(target), "Address: call to non-contract");
+            }
+            return returndata;
+        } else {
+            _revert(returndata, errorMessage);
+        }
     }
 
     function _verifyCallResult(
         bool success,
         bytes memory returndata,
         string memory errorMessage
-    ) private pure returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         if (success) {
             return returndata;
         } else {
-            // Look for revert reason and bubble it up if present
-            if (returndata.length > 0) {
-                // The easiest way to bubble the revert reason is using memory via assembly
+            _revert(returndata, errorMessage);
+        }
+    }
 
-                // solhint-disable-next-line no-inline-assembly
-                assembly {
-                    let returndata_size := mload(returndata)
-                    revert(add(32, returndata), returndata_size)
-                }
-            } else {
-                revert(errorMessage);
+    function _revert(bytes memory returndata, string memory errorMessage)
+        private
+        pure
+    {
+        // Look for revert reason and bubble it up if present
+        if (returndata.length > 0) {
+            // The easiest way to bubble the revert reason is using memory via assembly
+            /// @solidity memory-safe-assembly
+            assembly {
+                let returndata_size := mload(returndata)
+                revert(add(32, returndata), returndata_size)
             }
+        } else {
+            revert(errorMessage);
         }
     }
 }
@@ -327,7 +414,7 @@ contract ERC20 is Context, IERC20 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_) public {
+    constructor(string memory name_, string memory symbol_) {
         _name = name_;
         _symbol = symbol_;
         _decimals = 18;
@@ -681,7 +768,7 @@ abstract contract Ownable is Context {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor() internal {
+    constructor() {
         address msgSender = _msgSender();
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
@@ -734,7 +821,7 @@ abstract contract ReentrancyGuard {
 
     uint256 private _status;
 
-    constructor() internal {
+    constructor() {
         _status = _NOT_ENTERED;
     }
 
