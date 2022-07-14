@@ -973,7 +973,7 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
         require(userSTokens > 0, "userSTokens is 0");
         require(totalSupply > 0, "totalSupply is 0");
 
-        if (idStrat > 0) {
+        if (wrapAmt > 0) {
             uint256 unWrappedTokens = calculateSwapSTtoTokens(idStrat, wrapAmt);
 
             uint256 profitCheck = 0;
