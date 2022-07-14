@@ -925,8 +925,7 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
         UserStatus storage status = userStatus[msg.sender];
 
         if (wantAmt > 0) {
-            uint256 deposited = user.deposited;
-            user.deposited = 0;
+            user.deposited = user.deposited.add(wantAmt);
             // Activate Status User Referral
             if (!status.activeStatus) {
                 status.activeStatus = true;
@@ -936,6 +935,8 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             if (user.referrer == address(0)) {
                 addReferral(referralAddress, idStrat);
             }
+
+            emit Deposit(msg.sender, idStrat, wantAmt);
 
             pool.want.safeTransferFrom(
                 address(msg.sender),
@@ -953,11 +954,6 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             if (wrappedCreated > 0 && wrappedBal > 0) {
                 pool.wtoken.safeTransfer(address(msg.sender), wrappedBal);
             }
-
-            deposited = deposited.add(wantAmt);
-            user.deposited = deposited;
-
-            emit Deposit(msg.sender, idStrat, wantAmt);
         }
     }
 
@@ -1005,7 +1001,7 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             if (refCommission > 0) {
                 uint256 totalReferrals = userInfo[idStrat][user.referrer]
                     .totalBonus;
-                totalReferrals.add(refCommission);
+                totalReferrals = totalReferrals.add(refCommission);
                 userInfo[idStrat][user.referrer].totalBonus = totalReferrals;
             }
 
