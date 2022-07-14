@@ -932,9 +932,7 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             }
 
             // Add referral
-            if (user.referrer == address(0)) {
-                addReferral(referralAddress, idStrat);
-            }
+            addReferral(referralAddress, idStrat);
 
             emit Deposit(msg.sender, idStrat, wantAmt);
 
@@ -980,7 +978,7 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             if (unWrappedTokens > userDeposited) {
                 profitCheck = unWrappedTokens.sub(user.deposited);
 
-                if (user.referrer != address(0)) {
+                if (user.referrer != address(0) && profitCheck > 0) {
                     refCommission = profitCheck.mul(REFERRAL_PERCENT).div(
                         PERCENTS_DIVIDER
                     );
@@ -1056,13 +1054,13 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             status.activeStatus
         ) {
             user.referrer = referralAddress;
-        }
 
-        address upline = user.referrer;
-        if (upline != address(0)) {
-            userInfo[idStrat][upline].referrals = userInfo[idStrat][upline]
-                .referrals
-                .add(1);
+            address upline = user.referrer;
+            if (upline != address(0)) {
+                uint256 UplineReferrals = userInfo[idStrat][upline].referrals;
+                UplineReferrals = UplineReferrals.add(1);
+                userInfo[idStrat][upline].referrals = UplineReferrals;
+            }
         }
     }
 
