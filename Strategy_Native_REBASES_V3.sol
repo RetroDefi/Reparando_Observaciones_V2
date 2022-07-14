@@ -405,7 +405,7 @@ abstract contract Ownable is Context {
     /**
      * @dev Returns the address of the current owner.
      */
-    function owner() public view returns (address) {
+    function owner() external view returns (address) {
         return _owner;
     }
 
@@ -415,18 +415,6 @@ abstract contract Ownable is Context {
     modifier onlyOwner() {
         require(_owner == _msgSender(), "Ownable: caller is not the owner");
         _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
     }
 
     /**
@@ -475,7 +463,7 @@ contract ERC20 is Context, IERC20 {
     /**
      * @dev Returns the name of the token.
      */
-    function name() public view virtual returns (string memory) {
+    function name() external view virtual returns (string memory) {
         return _name;
     }
 
@@ -483,7 +471,7 @@ contract ERC20 is Context, IERC20 {
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view virtual returns (string memory) {
+    function symbol() external view virtual returns (string memory) {
         return _symbol;
     }
 
@@ -500,7 +488,7 @@ contract ERC20 is Context, IERC20 {
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view virtual returns (uint8) {
+    function decimals() external view virtual returns (uint8) {
         return _decimals;
     }
 
@@ -515,7 +503,7 @@ contract ERC20 is Context, IERC20 {
      * @dev See {IERC20-balanceOf}.
      */
     function balanceOf(address account)
-        public
+        external
         view
         virtual
         override
@@ -533,7 +521,7 @@ contract ERC20 is Context, IERC20 {
      * - the caller must have a balance of at least `amount`.
      */
     function transfer(address recipient, uint256 amount)
-        public
+        external
         virtual
         override
         returns (bool)
@@ -546,7 +534,7 @@ contract ERC20 is Context, IERC20 {
      * @dev See {IERC20-allowance}.
      */
     function allowance(address owner, address spender)
-        public
+        external
         view
         virtual
         override
@@ -563,7 +551,7 @@ contract ERC20 is Context, IERC20 {
      * - `spender` cannot be the zero address.
      */
     function approve(address spender, uint256 amount)
-        public
+        external
         virtual
         override
         returns (bool)
@@ -589,7 +577,7 @@ contract ERC20 is Context, IERC20 {
         address sender,
         address recipient,
         uint256 amount
-    ) public virtual override returns (bool) {
+    ) external virtual override returns (bool) {
         _transfer(sender, recipient, amount);
         _approve(
             sender,
@@ -615,7 +603,7 @@ contract ERC20 is Context, IERC20 {
      * - `spender` cannot be the zero address.
      */
     function increaseAllowance(address spender, uint256 addedValue)
-        public
+        external
         virtual
         returns (bool)
     {
@@ -642,7 +630,7 @@ contract ERC20 is Context, IERC20 {
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue)
-        public
+        external
         virtual
         returns (bool)
     {
@@ -1091,7 +1079,7 @@ contract Pausable is Context {
     /**
      * @dev Returns true if the contract is paused, and false otherwise.
      */
-    function paused() public view returns (bool) {
+    function paused() external view returns (bool) {
         return _paused;
     }
 
@@ -1153,20 +1141,17 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
     bool public constant isCAKEStaking = false; // always set to FALSE
     bool public constant isNativeVault = false; // always set to FALSE
 
-    address public constant farmContractAddress =
-        0x0000000000000000000000000000000000000000; // not used, funds stay on strategy address
+    address public constant farmContractAddress = address(0); // not used, funds stay on strategy address
     uint256 public pid; // not used
     address public wantAddress;
-    address public constant token0Address =
-        0x0000000000000000000000000000000000000000; // not used
-    address public constant token1Address =
-        0x0000000000000000000000000000000000000000; // not used
+    address public constant token0Address = address(0); // not used
+    address public constant token1Address = address(0); // not used
     address public earnedAddress;
     address public constant uniRouterAddress =
-        0x10ED43C718714eb63d5aA57B78B54704E256024E; // not used, no buyback
+        address(0x10ED43C718714eb63d5aA57B78B54704E256024E); // not used, no buyback
 
     address public constant wbnbAddress =
-        0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c; // not used
+        address(0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c); // not used
 
     address public nativeFarmAddress;
     address public NATIVEAddress;
@@ -1189,7 +1174,7 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
        absolutely impossible to generate a private key with today's computers. */
 
     address public constant buyBackAddress =
-        0x000000000000000000000000000000000000dEaD;
+        address(0x000000000000000000000000000000000000dEaD);
 
     address[] public earnedToNATIVEPath; // not used
     address[] public earnedToToken0Path; // not used
@@ -1211,6 +1196,14 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
         string memory _name,
         string memory _symbol
     ) ERC20(_name, _symbol) {
+        require(msg.sender != address(0), "Only contract owner can initialize");
+        require(
+            _nativeFarmAddress != address(0),
+            "Native farm address cannot be 0"
+        );
+        require(_NATIVEAddress != address(0), "Native address cannot be 0");
+        require(_wantAddress != address(0), "Want address cannot be 0");
+        require(_earnedAddress != address(0), "Earned address cannot be 0");
         govAddress = msg.sender;
         nativeFarmAddress = _nativeFarmAddress;
         NATIVEAddress = _NATIVEAddress;
@@ -1237,7 +1230,7 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
      * want to keep some of the system funds at hand in the vault, instead
      * of putting them to work.
      */
-    function available() public view returns (uint256) {
+    function available() external view returns (uint256) {
         return IERC20(wantAddress).balanceOf(address(this));
     }
 
