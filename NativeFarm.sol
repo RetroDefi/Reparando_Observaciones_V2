@@ -975,53 +975,63 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
 
         if (wrapAmt > 0) {
             uint256 unWrappedTokens = calculateSwapSTtoTokens(idStrat, wrapAmt);
+            uint256 userDeposited = user.deposited;
 
             uint256 profitCheck = 0;
             uint256 refCommission = 0;
+            uint256 refToWrapped = 0;
 
-            if (unWrappedTokens > user.deposited) {
+            if (unWrappedTokens > userDeposited) {
                 profitCheck = unWrappedTokens.sub(user.deposited);
 
                 if (user.referrer != address(0)) {
-                    refCommission = (
-                        profitCheck.mul(REFERRAL_PERCENT).div(PERCENTS_DIVIDER)
-                    ).mul(totalSupply).div(wantLockedTotal);
+                    refCommission = profitCheck.mul(REFERRAL_PERCENT).div(
+                        PERCENTS_DIVIDER
+                    );
+                    refToWrapped = refCommission.mul(totalSupply).div(
+                        wantLockedTotal
+                    );
                 }
 
-                user.deposited = 0;
+                userDeposited = 0;
             } else {
-                user.deposited = user.deposited.sub(unWrappedTokens);
+                userDeposited = userDeposited.sub(unWrappedTokens);
             }
 
-            // Send Referral Commission
+            // Update User Deposited
+            user.deposited = userDeposited;
+
+            // Update Variables of Referral Commission
             if (refCommission > 0) {
-                wrapAmt = wrapAmt.sub(refCommission);
-                userInfo[idStrat][user.referrer].totalBonus = userInfo[idStrat][
-                    user.referrer
-                ].totalBonus.add(refCommission);
+                uint256 totalReferrals = userInfo[idStrat][user.referrer]
+                    .totalBonus;
+                totalReferrals.add(refCommission);
+                userInfo[idStrat][user.referrer].totalBonus = totalReferrals;
             }
 
             emit Withdraw(msg.sender, idStrat, wrapAmt);
-
-            // Transfer Wrapped Tokens to Burn and get Deposited
+            // Transfer Wrapped Tokens to MasterSynth and get Deposited
             pool.wtoken.safeTransferFrom(
                 address(msg.sender),
                 address(this),
                 wrapAmt
             );
 
-            if (refCommission > 0) {
-                pool.wtoken.safeTransfer(address(user.referrer), refCommission);
+            // Send Referral Commission in Profits
+            if (refToWrapped > 0) {
+                pool.wtoken.safeTransfer(address(user.referrer), refToWrapped);
             }
-
+            // Check Wrapped Tokens Balance
+            wrapAmt = IERC20(pool.wtoken).balanceOf(address(this));
+            // Approve Wrapped Tokens for Strat
             pool.wtoken.safeIncreaseAllowance(pool.strat, wrapAmt);
-
-            // Withdraw want tokens
+            // Withdraw want tokens for strat
             uint256 wanTokens = IStrategy(poolInfo[idStrat].strat).withdraw(
                 msg.sender,
                 wrapAmt
             );
-
+            // Check Want Tokens Balance
+            wanTokens = IERC20(pool.want).balanceOf(address(this));
             // Transfer Want tokens to User
             pool.want.safeTransfer(address(msg.sender), wanTokens);
         }
