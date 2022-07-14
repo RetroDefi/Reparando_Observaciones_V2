@@ -312,7 +312,7 @@ contract ERC20 is Context, IERC20 {
 
     mapping(address => mapping(address => uint256)) private _allowances;
 
-    uint256 private _totalSupply;
+    uint256 private _totalSupply = 0;
 
     string private _name;
     string private _symbol;
