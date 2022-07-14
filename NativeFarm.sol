@@ -979,16 +979,13 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             uint256 profitCheck = 0;
             uint256 refCommission = 0;
 
-            uint256 refUnWrap = 0;
-
             if (unWrappedTokens > user.deposited) {
                 profitCheck = unWrappedTokens.sub(user.deposited);
 
                 if (user.referrer != address(0)) {
-                    refCommission = profitCheck.mul(REFERRAL_PERCENT).div(
-                        PERCENTS_DIVIDER
-                    );
-                    refUnWrap = refCommission;
+                    refCommission = (
+                        profitCheck.mul(REFERRAL_PERCENT).div(PERCENTS_DIVIDER)
+                    ).mul(totalSupply).div(wantLockedTotal);
                 }
 
                 user.deposited = 0;
@@ -997,8 +994,7 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
             }
 
             // Send Referral Commission
-            if (refUnWrap > 0) {
-                refUnWrap = refUnWrap.mul(totalSupply).div(wantLockedTotal);
+            if (refCommission > 0) {
                 wrapAmt = wrapAmt.sub(refCommission);
                 userInfo[idStrat][user.referrer].totalBonus = userInfo[idStrat][
                     user.referrer
@@ -1014,8 +1010,8 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
                 wrapAmt
             );
 
-            if (refUnWrap > 0) {
-                pool.wtoken.safeTransfer(address(user.referrer), refUnWrap);
+            if (refCommission > 0) {
+                pool.wtoken.safeTransfer(address(user.referrer), refCommission);
             }
 
             pool.wtoken.safeIncreaseAllowance(pool.strat, wrapAmt);
