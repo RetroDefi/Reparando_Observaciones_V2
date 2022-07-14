@@ -1132,39 +1132,39 @@ contract Pausable is Context {
     }
 }
 
-contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
+contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     // Strategy used to only stake native tokens
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    bool public constant isCAKEStaking = false; // always set to FALSE
-    bool public constant isNativeVault = false; // always set to FALSE
+    bool public constant IS_CAKE_STAKING = false; // always set to FALSE
+    bool public constant IS_NATIVE_VAULT = false; // always set to FALSE
 
-    address public constant farmContractAddress = address(0); // not used, funds stay on strategy address
+    address public constant FARM_CONTRACT_ADDRESSS = address(0); // not used, funds stay on strategy address
     uint256 public pid; // not used
     address public wantAddress;
-    address public constant token0Address = address(0); // not used
-    address public constant token1Address = address(0); // not used
+    address public constant TOKEN0_ADDRESS = address(0); // not used
+    address public constant TOKEN1_ADDRESS = address(0); // not used
     address public earnedAddress;
-    address public constant uniRouterAddress =
+    address public constant UNI_ROUTER_ADDRESS =
         address(0x10ED43C718714eb63d5aA57B78B54704E256024E); // not used, no buyback
 
-    address public constant wbnbAddress =
+    address public constant WBNB_ADDRESS =
         address(0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c); // not used
 
     address public nativeFarmAddress;
-    address public NATIVEAddress;
+    address public nativeAddress;
     address public govAddress; // timelock contract
-    bool public onlyGov = true;
+    bool public constant onlyGov = true;
 
-    uint256 public constant lastEarnBlock = 0;
+    uint256 public constant LAST_EARN_BLOCK = 0;
     uint256 public wantLockedTotal = 0;
     uint256 public sharesTotal = 0;
 
-    uint256 public BUYBACK_FEE = 70;
-    uint256 public CONTROLLER_FEE = 30;
-    uint256 public COMPOUND_FEE = 20;
+    uint256 public BuyBack_Fee = 70;
+    uint256 public Controller_Fee = 30;
+    uint256 public Compound_Fee = 20;
 
     uint256 public constant FEE_MAX = 100;
 
@@ -1173,7 +1173,7 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     /* This is vanity address -  For instance an address 0x000000000000000000000000000000000000dEaD for which it's
        absolutely impossible to generate a private key with today's computers. */
 
-    address public constant buyBackAddress =
+    address public constant BUY_BACK_ADDRESS =
         address(0x000000000000000000000000000000000000dEaD);
 
     address[] public earnedToNATIVEPath; // not used
@@ -1190,7 +1190,7 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
 
     constructor(
         address _nativeFarmAddress,
-        address _NATIVEAddress,
+        address _nativeAddress,
         address _wantAddress,
         address _earnedAddress,
         string memory _Name,
@@ -1201,12 +1201,12 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
             _nativeFarmAddress != address(0),
             "Native farm address cannot be 0"
         );
-        require(_NATIVEAddress != address(0), "Native address cannot be 0");
+        require(_nativeAddress != address(0), "Native address cannot be 0");
         require(_wantAddress != address(0), "Want address cannot be 0");
         require(_earnedAddress != address(0), "Earned address cannot be 0");
         govAddress = msg.sender;
         nativeFarmAddress = _nativeFarmAddress;
-        NATIVEAddress = _NATIVEAddress;
+        nativeAddress = _nativeAddress;
 
         wantAddress = _wantAddress;
         pid = 0;
@@ -1246,7 +1246,7 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     }
 
     // Receives new deposits from user
-    function deposit(address userAddress, uint256 wantAmt)
+    function deposit(address _userAddress, uint256 wantAmt)
         external
         onlyOwner
         whenNotPaused
@@ -1274,7 +1274,7 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
 
         sharesTotal = sharesTotal.add(shares);
 
-        if (isNativeVault) {
+        if (IS_NATIVE_VAULT) {
             _farm();
         } else {
             wantLockedTotal = wantLockedTotal.add(wantAmt);
@@ -1290,7 +1290,7 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     // not used
     function _farm() internal {}
 
-    function withdraw(address userAddress, uint256 wrapAmt)
+    function withdraw(address _userAddress, uint256 wrapAmt)
         public
         onlyOwner
         returns (uint256)
@@ -1336,15 +1336,15 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
             uint256 ctrlfee = 0;
             uint256 compfee = 0;
 
-            if (CONTROLLER_FEE > 0) {
-                ctrlfee = BalanceRewards.mul(CONTROLLER_FEE).div(
+            if (Controller_Fee > 0) {
+                ctrlfee = BalanceRewards.mul(Controller_Fee).div(
                     PERCENT_DIVIDER
                 );
                 IERC20(wantAddress).safeTransfer(govAddress, ctrlfee);
             }
 
-            if (COMPOUND_FEE > 0) {
-                compfee = BalanceRewards.mul(COMPOUND_FEE).div(PERCENT_DIVIDER);
+            if (Compound_Fee > 0) {
+                compfee = BalanceRewards.mul(Compound_Fee).div(PERCENT_DIVIDER);
                 IERC20(wantAddress).safeTransfer(msg.sender, compfee);
             }
         }
@@ -1367,38 +1367,38 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     function setControllerFee(uint256 newControllerFee) external {
         require(msg.sender == govAddress, "Not authorised");
         require(
-            newControllerFee.add(BUYBACK_FEE).add(COMPOUND_FEE) <= FEE_MAX,
+            newControllerFee.add(BuyBack_Fee).add(Compound_Fee) <= FEE_MAX,
             "too high"
         );
-        emit UpdateControllerFee(CONTROLLER_FEE, newControllerFee);
-        CONTROLLER_FEE = newControllerFee;
+        emit UpdateControllerFee(Controller_Fee, newControllerFee);
+        Controller_Fee = newControllerFee;
     }
 
     function setbuyBackRate(uint256 newBuyBackFee) external {
         require(msg.sender == govAddress, "Not authorised");
         require(
-            newBuyBackFee.add(CONTROLLER_FEE).add(COMPOUND_FEE) <= FEE_MAX,
+            newBuyBackFee.add(Controller_Fee).add(Compound_Fee) <= FEE_MAX,
             "too high"
         );
-        emit UpdateBuybackFee(BUYBACK_FEE, newBuyBackFee);
-        BUYBACK_FEE = newBuyBackFee;
+        emit UpdateBuybackFee(BuyBack_Fee, newBuyBackFee);
+        BuyBack_Fee = newBuyBackFee;
     }
 
     function setCompoundFee(uint256 newCompoundFee) external {
         require(msg.sender == govAddress, "Not authorised");
         require(
-            newCompoundFee.add(BUYBACK_FEE).add(CONTROLLER_FEE) <= FEE_MAX,
+            newCompoundFee.add(BuyBack_Fee).add(Controller_Fee) <= FEE_MAX,
             "too high"
         );
-        emit UpdateCompoundFee(COMPOUND_FEE, newCompoundFee);
-        COMPOUND_FEE = newCompoundFee;
+        emit UpdateCompoundFee(Compound_Fee, newCompoundFee);
+        Compound_Fee = newCompoundFee;
     }
 
-    function setGov(address _govAddress) external {
+    function setGov(address newGovAddress) external {
         require(msg.sender == govAddress, "!gov");
-        require(_govAddress != address(0), "govAddress cannot be 0");
-        emit ChangeGov(govAddress, _govAddress);
-        govAddress = _govAddress;
+        require(newGovAddress != address(0), "govAddress cannot be 0");
+        emit ChangeGov(govAddress, newGovAddress);
+        govAddress = newGovAddress;
     }
 
     function workerCompound() external view returns (uint256) {
@@ -1410,7 +1410,7 @@ contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
         }
 
         if (BalanceRewards > 0) {
-            Reward = BalanceRewards.mul(COMPOUND_FEE).div(PERCENT_DIVIDER);
+            Reward = BalanceRewards.mul(Compound_Fee).div(PERCENT_DIVIDER);
         }
 
         return Reward;
