@@ -1132,7 +1132,7 @@ contract Pausable is Context {
     }
 }
 
-contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
+contract StrategyNative_Rebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     // Strategy used to only stake native tokens
 
     using SafeMath for uint256;
@@ -1193,9 +1193,9 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
         address _NATIVEAddress,
         address _wantAddress,
         address _earnedAddress,
-        string memory _name,
-        string memory _symbol
-    ) ERC20(_name, _symbol) {
+        string memory _Name,
+        string memory _Symbol
+    ) ERC20(_Name, _Symbol) {
         require(msg.sender != address(0), "Only contract owner can initialize");
         require(
             _nativeFarmAddress != address(0),
@@ -1364,34 +1364,34 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
         _unpause();
     }
 
-    function setControllerFee(uint256 _newControllerFee) external {
+    function setControllerFee(uint256 newControllerFee) external {
         require(msg.sender == govAddress, "Not authorised");
         require(
-            _newControllerFee.add(BUYBACK_FEE).add(COMPOUND_FEE) <= FEE_MAX,
+            newControllerFee.add(BUYBACK_FEE).add(COMPOUND_FEE) <= FEE_MAX,
             "too high"
         );
-        emit UpdateControllerFee(CONTROLLER_FEE, _newControllerFee);
-        CONTROLLER_FEE = _newControllerFee;
+        emit UpdateControllerFee(CONTROLLER_FEE, newControllerFee);
+        CONTROLLER_FEE = newControllerFee;
     }
 
-    function setbuyBackRate(uint256 _newBuyBackFee) external {
+    function setbuyBackRate(uint256 newBuyBackFee) external {
         require(msg.sender == govAddress, "Not authorised");
         require(
-            _newBuyBackFee.add(CONTROLLER_FEE).add(COMPOUND_FEE) <= FEE_MAX,
+            newBuyBackFee.add(CONTROLLER_FEE).add(COMPOUND_FEE) <= FEE_MAX,
             "too high"
         );
-        emit UpdateBuybackFee(BUYBACK_FEE, _newBuyBackFee);
-        BUYBACK_FEE = _newBuyBackFee;
+        emit UpdateBuybackFee(BUYBACK_FEE, newBuyBackFee);
+        BUYBACK_FEE = newBuyBackFee;
     }
 
-    function setCompoundFee(uint256 _newCompoundFee) external {
+    function setCompoundFee(uint256 newCompoundFee) external {
         require(msg.sender == govAddress, "Not authorised");
         require(
-            _newCompoundFee.add(BUYBACK_FEE).add(CONTROLLER_FEE) <= FEE_MAX,
+            newCompoundFee.add(BUYBACK_FEE).add(CONTROLLER_FEE) <= FEE_MAX,
             "too high"
         );
-        emit UpdateCompoundFee(COMPOUND_FEE, _newCompoundFee);
-        COMPOUND_FEE = _newCompoundFee;
+        emit UpdateCompoundFee(COMPOUND_FEE, newCompoundFee);
+        COMPOUND_FEE = newCompoundFee;
     }
 
     function setGov(address _govAddress) external {
@@ -1399,11 +1399,6 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
         require(_govAddress != address(0), "govAddress cannot be 0");
         emit ChangeGov(govAddress, _govAddress);
         govAddress = _govAddress;
-    }
-
-    function setOnlyGov(bool _onlyGov) external {
-        require(msg.sender == govAddress, "!gov");
-        onlyGov = _onlyGov;
     }
 
     function workerCompound() external view returns (uint256) {
@@ -1422,13 +1417,13 @@ contract StrategyNative_REBASE is ERC20, Ownable, ReentrancyGuard, Pausable {
     }
 
     function inCaseTokensGetStuck(
-        address _token,
-        uint256 _amount,
-        address _to
+        address token,
+        uint256 amount,
+        address to
     ) external {
         require(msg.sender == govAddress, "!gov");
-        require(_token != earnedAddress, "!safe");
-        require(_token != wantAddress, "!safe");
-        IERC20(_token).safeTransfer(_to, _amount);
+        require(token != earnedAddress, "!safe");
+        require(token != wantAddress, "!safe");
+        IERC20(token).safeTransfer(to, amount);
     }
 }
