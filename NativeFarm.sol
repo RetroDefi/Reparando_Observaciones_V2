@@ -876,20 +876,20 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
         uint256 userWant = calculateSwapSTtoTokens(idStrat, userWrapped);
 
         uint256 profitCheck = 0;
-        uint256 RefCommission = 0;
+        uint256 refCommission = 0;
 
         uint256 userFinalWant = 0;
 
         if (userWant > user.deposited) {
             profitCheck = userWant.sub(user.deposited);
             if (user.referrer != address(0)) {
-                RefCommission = profitCheck.mul(REFERRAL_PERCENT).div(
+                refCommission = profitCheck.mul(REFERRAL_PERCENT).div(
                     PERCENTS_DIVIDER
                 );
             }
         }
-        if (RefCommission > 0) {
-            userFinalWant = userWant.sub(RefCommission);
+        if (refCommission > 0) {
+            userFinalWant = userWant.sub(refCommission);
         } else {
             userFinalWant = userWant;
         }
@@ -978,7 +978,6 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
 
             uint256 profitCheck = 0;
             uint256 refCommission = 0;
-            uint256 refToWrap = 0;
 
             if (unWrappedTokens > user.deposited) {
                 profitCheck = unWrappedTokens.sub(user.deposited);
@@ -987,10 +986,22 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
                     refCommission = profitCheck.mul(REFERRAL_PERCENT).div(
                         PERCENTS_DIVIDER
                     );
-                    refToWrap = refCommission.mul(totalSupply).div(
+                    refCommission = refCommission.mul(totalSupply).div(
                         wantLockedTotal
                     );
                 }
+
+                user.deposited = 0;
+            } else {
+                user.deposited = user.deposited.sub(unWrappedTokens);
+            }
+
+            // Send Referral Commission
+            if (refCommission > 0) {
+                wrapAmt = wrapAmt.sub(refCommission);
+                userInfo[idStrat][user.referrer].totalBonus = userInfo[idStrat][
+                    user.referrer
+                ].totalBonus.add(refCommission);
             }
 
             // Transfer Wrapped Tokens to Burn and get Deposited
@@ -1000,11 +1011,11 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
                 wrapAmt
             );
 
-            pool.wtoken.safeIncreaseAllowance(pool.strat, wrapAmt);
-
             if (refCommission > 0) {
-                wrapAmt = wrapAmt.sub(refCommission);
+                pool.wtoken.safeTransfer(address(user.referrer), refCommission);
             }
+
+            pool.wtoken.safeIncreaseAllowance(pool.strat, wrapAmt);
 
             // Withdraw want tokens
             uint256 wanTokens = IStrategy(poolInfo[idStrat].strat).withdraw(
@@ -1012,35 +1023,10 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
                 wrapAmt
             );
 
-            // Send Referral Commission
-            uint256 wTokenBal = IERC20(pool.wtoken).balanceOf(address(this));
-            if (wTokenBal > 0) {
-                uint256 TotalReferrals = userInfo[idStrat][user.referrer]
-                    .totalBonus;
-                userInfo[idStrat][user.referrer].totalBonus = 0;
-
-                pool.wtoken.safeTransfer(address(user.referrer), wTokenBal);
-
-                TotalReferrals = TotalReferrals.add(wTokenBal);
-                userInfo[idStrat][user.referrer].totalBonus = TotalReferrals;
-            }
-
             // Transfer Want tokens to User
-            uint256 wantBal = IERC20(pool.want).balanceOf(address(this));
-            if (wanTokens > 0 && wantBal > 0) {
-                uint256 deposited = user.deposited;
-                user.deposited = 0;
-                if (wantBal > deposited) {
-                    deposited = 0;
-                } else {
-                    deposited = deposited.sub(wantBal);
-                }
+            pool.want.safeTransfer(address(msg.sender), wanTokens);
 
-                pool.want.safeTransfer(address(msg.sender), wantBal);
-                user.deposited = deposited;
-
-                emit Withdraw(msg.sender, idStrat, wantBal);
-            }
+            emit Withdraw(msg.sender, idStrat, wrapAmt);
         }
     }
 
