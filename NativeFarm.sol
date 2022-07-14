@@ -975,19 +975,19 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
 
         if (idStrat > 0) {
             uint256 unWrappedTokens = calculateSwapSTtoTokens(idStrat, wrapAmt);
+
             uint256 profitCheck = 0;
-            uint256 RefCommission = 0;
+            uint256 refCommission = 0;
 
             if (unWrappedTokens > user.deposited) {
                 profitCheck = unWrappedTokens.sub(user.deposited);
 
                 if (user.referrer != address(0)) {
-                    RefCommission = profitCheck.mul(REFERRAL_PERCENT).div(
-                        PERCENTS_DIVIDER
-                    );
-                    RefCommission = RefCommission.mul(totalSupply).div(
-                        wantLockedTotal
-                    );
+                    refCommission = profitCheck
+                        .mul(REFERRAL_PERCENT)
+                        .div(PERCENTS_DIVIDER)
+                        .mul(totalSupply)
+                        .div(wantLockedTotal);
                 }
             }
 
@@ -1000,8 +1000,8 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
 
             pool.wtoken.safeIncreaseAllowance(pool.strat, wrapAmt);
 
-            if (RefCommission > 0) {
-                wrapAmt = wrapAmt.sub(RefCommission);
+            if (refCommission > 0) {
+                wrapAmt = wrapAmt.sub(refCommission);
             }
 
             // Withdraw want tokens
