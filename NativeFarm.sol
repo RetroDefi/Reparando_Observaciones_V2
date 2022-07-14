@@ -986,9 +986,6 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
                     refCommission = profitCheck.mul(REFERRAL_PERCENT).div(
                         PERCENTS_DIVIDER
                     );
-                    refCommission = refCommission.mul(totalSupply).div(
-                        wantLockedTotal
-                    );
                 }
 
                 user.deposited = 0;
@@ -998,6 +995,9 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
 
             // Send Referral Commission
             if (refCommission > 0) {
+                refCommission = refCommission.mul(totalSupply).div(
+                    wantLockedTotal
+                );
                 wrapAmt = wrapAmt.sub(refCommission);
                 userInfo[idStrat][user.referrer].totalBonus = userInfo[idStrat][
                     user.referrer
