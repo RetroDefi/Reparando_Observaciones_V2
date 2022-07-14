@@ -1004,6 +1004,8 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
                 ].totalBonus.add(refCommission);
             }
 
+            emit Withdraw(msg.sender, idStrat, wrapAmt);
+
             // Transfer Wrapped Tokens to Burn and get Deposited
             pool.wtoken.safeTransferFrom(
                 address(msg.sender),
@@ -1025,8 +1027,6 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
 
             // Transfer Want tokens to User
             pool.want.safeTransfer(address(msg.sender), wanTokens);
-
-            emit Withdraw(msg.sender, idStrat, wrapAmt);
         }
     }
 
