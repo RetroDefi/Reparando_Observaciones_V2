@@ -973,19 +973,23 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
         require(userSTokens > 0, "userSTokens is 0");
         require(totalSupply > 0, "totalSupply is 0");
 
-        if (wrapAmt > 0) {
+        if (idStrat > 0) {
             uint256 unWrappedTokens = calculateSwapSTtoTokens(idStrat, wrapAmt);
 
             uint256 profitCheck = 0;
             uint256 refCommission = 0;
+            uint256 refToWrap = 0;
 
             if (unWrappedTokens > user.deposited) {
                 profitCheck = unWrappedTokens.sub(user.deposited);
 
                 if (user.referrer != address(0)) {
-                    refCommission = (
-                        profitCheck.mul(REFERRAL_PERCENT).div(PERCENTS_DIVIDER)
-                    ).mul(totalSupply).div(wantLockedTotal);
+                    refCommission = profitCheck.mul(REFERRAL_PERCENT).div(
+                        PERCENTS_DIVIDER
+                    );
+                    refToWrap = refCommission.mul(totalSupply).div(
+                        wantLockedTotal
+                    );
                 }
             }
 
