@@ -919,6 +919,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
             // Overflow not possible: balance + amount is at most totalSupply + amount, which is checked above.
             _balances[account] += amount;
         }
+        //slither-disable-next-line reentrancy-events
         emit Transfer(address(0), account, amount);
 
         _afterTokenTransfer(address(0), account, amount);
