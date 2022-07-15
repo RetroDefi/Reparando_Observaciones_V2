@@ -1236,7 +1236,21 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     event UpdateBuybackFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateControllerFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateCompoundFee(uint256 indexed oldFee, uint256 indexed newFee);
-    event UpdateTotalStaked(uint256 indexed oldTotal, uint256 indexed newTotal);
+    event Deposit(
+        address indexed user,
+        uint256 indexed newTotal,
+        uint256 amount
+    );
+    event Withdraw(
+        address indexed user,
+        uint256 indexed newTotal,
+        uint256 amount
+    );
+    event Compound(
+        address indexed user,
+        uint256 indexed newTotal,
+        uint256 amount
+    );
 
     constructor(
         address _nativeFarmAddress,
@@ -1367,12 +1381,9 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (IS_AUTO_COMP) {
             _farm();
         } else {
-            emit UpdateTotalStaked(
-                wantLockedTotal,
-                wantLockedTotal.add(wantAmt)
-            );
             wantLockedTotal = wantLockedTotal.add(wantAmt);
         }
+        emit Deposit(userAddress, wantLockedTotal, wantAmt);
 
         return shares;
     }
@@ -1385,8 +1396,8 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         require(IS_AUTO_COMP, "!IS_AUTO_COMP");
         // reinvest harvested amount
         uint256 wantAmt = available();
-        emit UpdateTotalStaked(wantLockedTotal, wantLockedTotal.add(wantAmt));
         wantLockedTotal = wantLockedTotal.add(wantAmt);
+        emit Compound(msg.sender, wantLockedTotal, wantAmt);
         IERC20(wantAddress).safeIncreaseAllowance(farmContractAddress, wantAmt);
 
         IXswapFarm(farmContractAddress).deposit(pid, wantAmt);
@@ -1422,9 +1433,9 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
             wrapAmt = sharesTotal;
         }
         sharesTotal = sharesTotal.sub(wrapAmt);
-        emit UpdateTotalStaked(wantLockedTotal, wantLockedTotal.sub(r));
         wantLockedTotal = wantLockedTotal.sub(r);
 
+        emit Withdraw(userAddress, wantLockedTotal, wrapAmt);
         IERC20(wantAddress).safeTransfer(nativeFarmAddress, r);
 
         return r;

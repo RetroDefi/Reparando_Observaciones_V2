@@ -1186,7 +1186,6 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     event UpdateBuybackFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateControllerFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateCompoundFee(uint256 indexed oldFee, uint256 indexed newFee);
-    event UpdateTotalStaked(uint256 indexed oldTotal, uint256 indexed newTotal);
     event Deposit(
         address indexed user,
         uint256 indexed newTotal,
