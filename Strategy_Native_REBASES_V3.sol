@@ -277,6 +277,7 @@ library Address {
             address(this).balance >= value,
             "Address: insufficient balance for call"
         );
+        //slither-disable-next-line low-level-calls
         (bool success, bytes memory returndata) = target.call{value: value}(
             data
         );
@@ -321,6 +322,7 @@ library Address {
         if (returndata.length > 0) {
             // The easiest way to bubble the revert reason is using memory via assembly
             /// @solidity memory-safe-assembly
+            //slither-disable-next-line assembly
             assembly {
                 let returndata_size := mload(returndata)
                 revert(add(32, returndata), returndata_size)
@@ -802,6 +804,7 @@ interface IPancakeswapFarm {
 interface IPancakeRouter01 {
     function factory() external pure returns (address);
 
+    //slither-disable-next-line naming-convention
     function WETH() external pure returns (address);
 
     function addLiquidity(
@@ -1254,6 +1257,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
      */
     function getPricePerFullShare() external view returns (uint256) {
         return
+            //slither-disable-next-line incorrect-equality
             totalSupply() == 0
                 ? 1e18
                 : wantLockedTotal.mul(1e18).div(totalSupply());
@@ -1278,7 +1282,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
         wantAmt = _after.sub(_pool); // Additional check for deflationary tokens
 
         uint256 shares = 0;
-
+        //slither-disable-next-line incorrect-equality
         if (totalSupply() == 0) {
             shares = wantAmt;
         } else {
