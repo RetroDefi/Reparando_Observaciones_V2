@@ -1179,14 +1179,14 @@ interface IXRouter02 is IXRouter01 {
     ) external;
 }
 
-contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
+contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     // Maximises yields in e.g. pancakeswap
 
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    bool public constant isSingleVault = false;
-    bool public constant isAutoComp = true;
+    bool public constant IS_SINGLE_VAULT = false;
+    bool public constant IS_AUTO_COMP = true;
 
     address public farmContractAddress; // address of farm, eg, PCS, Thugs etc.
     uint256 public pid; // pid of pool in farmContractAddress
@@ -1194,25 +1194,25 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     address public token0Address;
     address public token1Address;
     address public earnedAddress;
-    address public constant uniRouterAddress =
+    address public constant UNI_ROUTER_ADDRESS =
         0x10ED43C718714eb63d5aA57B78B54704E256024E; // uniswap, pancakeswap etc
     address public buybackRouterAddress =
         0x10ED43C718714eb63d5aA57B78B54704E256024E; // uniswap, pancakeswap etc
-    uint256 public constant routerDeadlineDuration = 300; // Set on global level, could be passed to functions via arguments
+    uint256 public constant ROUTER_DEADLINE_DURATION = 300; // Set on global level, could be passed to functions via arguments
 
-    address public constant wbnbAddress =
+    address public constant WBNB_ADDRESS =
         0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c; // should be WBNB or BUSD
     address public nativeFarmAddress;
-    address public RETROAddress;
+    address public retroAddress;
     address public govAddress = 0x1F40C69eDfF22BFb99441641922778184dD07e69; // timelock contract
 
     uint256 public lastEarnBlock = 0;
     uint256 public wantLockedTotal = 0;
     uint256 public sharesTotal = 0;
 
-    uint256 public BUYBACK_FEE = 70;
-    uint256 public CONTROLLER_FEE = 30;
-    uint256 public COMPOUND_FEE = 20;
+    uint256 public buybackFee = 70;
+    uint256 public controllerFee = 30;
+    uint256 public compoundFee = 20;
 
     uint256 public constant FEE_MAX = 120;
 
@@ -1220,7 +1220,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
     /* This is vanity address -  For instance an address 0x000000000000000000000000000000000000dEaD for which it's
        absolutely impossible to generate a private key with today's computers. */
-    address public constant buyBackAddress =
+    address public constant BUY_BACK_ADDRESS =
         0x000000000000000000000000000000000000dEaD;
 
     address[] public earnedToNATIVEPath;
@@ -1230,7 +1230,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     address[] public token1ToEarnedPath;
     address[] public earnedToWantPath;
     address[] public earnedToWBNBPath;
-    address[] public WBNBToNATIVEPath;
+    address[] public wbnbToNativePath;
 
     event ChangeGov(address indexed oldGov, address indexed newGov);
     event UpdateBuybackFee(uint256 indexed oldFee, uint256 indexed newFee);
@@ -1240,7 +1240,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
     constructor(
         address _nativeFarmAddress,
-        address _RETROAddress,
+        address _retroAddress,
         uint256 _pid,
         address _wantAddress,
         address _token0Address,
@@ -1249,12 +1249,12 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         string memory _Symbol
     ) ERC20(_Name, _Symbol) {
         nativeFarmAddress = _nativeFarmAddress;
-        RETROAddress = _RETROAddress;
+        retroAddress = _retroAddress;
 
         wantAddress = _wantAddress;
 
-        if (isAutoComp) {
-            if (!isSingleVault) {
+        if (IS_AUTO_COMP) {
+            if (!IS_SINGLE_VAULT) {
                 token0Address = _token0Address;
                 token1Address = _token1Address;
             }
@@ -1263,38 +1263,38 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
             pid = _pid;
             earnedAddress = 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82;
 
-            earnedToNATIVEPath = [earnedAddress, wbnbAddress, RETROAddress];
-            if (wbnbAddress == earnedAddress) {
-                earnedToNATIVEPath = [wbnbAddress, RETROAddress];
+            earnedToNATIVEPath = [earnedAddress, WBNB_ADDRESS, retroAddress];
+            if (WBNB_ADDRESS == earnedAddress) {
+                earnedToNATIVEPath = [WBNB_ADDRESS, retroAddress];
             }
 
-            earnedToToken0Path = [earnedAddress, wbnbAddress, token0Address];
-            if (wbnbAddress == token0Address) {
-                earnedToToken0Path = [earnedAddress, wbnbAddress];
+            earnedToToken0Path = [earnedAddress, WBNB_ADDRESS, token0Address];
+            if (WBNB_ADDRESS == token0Address) {
+                earnedToToken0Path = [earnedAddress, WBNB_ADDRESS];
             }
 
-            earnedToToken1Path = [earnedAddress, wbnbAddress, token1Address];
-            if (wbnbAddress == token1Address) {
-                earnedToToken1Path = [earnedAddress, wbnbAddress];
+            earnedToToken1Path = [earnedAddress, WBNB_ADDRESS, token1Address];
+            if (WBNB_ADDRESS == token1Address) {
+                earnedToToken1Path = [earnedAddress, WBNB_ADDRESS];
             }
 
-            token0ToEarnedPath = [token0Address, wbnbAddress, earnedAddress];
-            if (wbnbAddress == token0Address) {
-                token0ToEarnedPath = [wbnbAddress, earnedAddress];
+            token0ToEarnedPath = [token0Address, WBNB_ADDRESS, earnedAddress];
+            if (WBNB_ADDRESS == token0Address) {
+                token0ToEarnedPath = [WBNB_ADDRESS, earnedAddress];
             }
 
-            token1ToEarnedPath = [token1Address, wbnbAddress, earnedAddress];
-            if (wbnbAddress == token1Address) {
-                token1ToEarnedPath = [wbnbAddress, earnedAddress];
+            token1ToEarnedPath = [token1Address, WBNB_ADDRESS, earnedAddress];
+            if (WBNB_ADDRESS == token1Address) {
+                token1ToEarnedPath = [WBNB_ADDRESS, earnedAddress];
             }
 
-            earnedToWantPath = [earnedAddress, wbnbAddress, wantAddress];
-            if (wbnbAddress == wantAddress) {
+            earnedToWantPath = [earnedAddress, WBNB_ADDRESS, wantAddress];
+            if (WBNB_ADDRESS == wantAddress) {
                 earnedToWantPath = [earnedAddress, wantAddress];
             }
 
-            earnedToWBNBPath = [earnedAddress, wbnbAddress];
-            WBNBToNATIVEPath = [wbnbAddress, RETROAddress];
+            earnedToWBNBPath = [earnedAddress, WBNB_ADDRESS];
+            wbnbToNativePath = [WBNB_ADDRESS, retroAddress];
         }
 
         transferOwnership(nativeFarmAddress);
@@ -1364,7 +1364,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
         sharesTotal = sharesTotal.add(shares);
 
-        if (isAutoComp) {
+        if (IS_AUTO_COMP) {
             _farm();
         } else {
             emit UpdateTotalStaked(
@@ -1382,7 +1382,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     }
 
     function _farm() internal {
-        require(isAutoComp, "!isAutoComp");
+        require(IS_AUTO_COMP, "!IS_AUTO_COMP");
         // reinvest harvested amount
         uint256 wantAmt = available();
         emit UpdateTotalStaked(wantLockedTotal, wantLockedTotal.add(wantAmt));
@@ -1406,7 +1406,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (b < r) {
             uint256 _withdraw = r.sub(b);
 
-            if (isAutoComp) {
+            if (IS_AUTO_COMP) {
                 IXswapFarm(farmContractAddress).withdraw(pid, _withdraw);
             }
 
@@ -1435,7 +1435,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     // 3. Deposits want tokens
 
     function earn() external nonReentrant whenNotPaused {
-        require(isAutoComp, "!isAutoComp");
+        require(IS_AUTO_COMP, "!IS_AUTO_COMP");
 
         // Harvest farm tokens
         IXswapFarm(farmContractAddress).withdraw(pid, 0);
@@ -1446,21 +1446,21 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         earnedAmt = buyBack(earnedAmt);
         earnedAmt = distributeFees(earnedAmt);
 
-        if (isSingleVault) {
+        if (IS_SINGLE_VAULT) {
             if (earnedAddress != wantAddress) {
                 IERC20(earnedAddress).safeIncreaseAllowance(
-                    uniRouterAddress,
+                    UNI_ROUTER_ADDRESS,
                     earnedAmt
                 );
 
                 // Swap earned to want
-                IXRouter02(uniRouterAddress)
+                IXRouter02(UNI_ROUTER_ADDRESS)
                     .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                         earnedAmt,
                         0,
                         earnedToWantPath,
                         address(this),
-                        block.timestamp + routerDeadlineDuration
+                        block.timestamp + ROUTER_DEADLINE_DURATION
                     );
             }
             lastEarnBlock = block.number;
@@ -1469,31 +1469,31 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         }
 
         IERC20(earnedAddress).safeIncreaseAllowance(
-            uniRouterAddress,
+            UNI_ROUTER_ADDRESS,
             earnedAmt
         );
 
         if (earnedAddress != token0Address) {
             // Swap half earned to token0
-            IXRouter02(uniRouterAddress)
+            IXRouter02(UNI_ROUTER_ADDRESS)
                 .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                     earnedAmt.div(2),
                     0,
                     earnedToToken0Path,
                     address(this),
-                    block.timestamp + routerDeadlineDuration
+                    block.timestamp + ROUTER_DEADLINE_DURATION
                 );
         }
 
         if (earnedAddress != token1Address) {
             // Swap half earned to token1
-            IXRouter02(uniRouterAddress)
+            IXRouter02(UNI_ROUTER_ADDRESS)
                 .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                     earnedAmt.div(2),
                     0,
                     earnedToToken1Path,
                     address(this),
-                    block.timestamp + routerDeadlineDuration
+                    block.timestamp + ROUTER_DEADLINE_DURATION
                 );
         }
 
@@ -1502,15 +1502,15 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         uint256 token1Amt = IERC20(token1Address).balanceOf(address(this));
         if (token0Amt > 0 && token1Amt > 0) {
             IERC20(token0Address).safeIncreaseAllowance(
-                uniRouterAddress,
+                UNI_ROUTER_ADDRESS,
                 token0Amt
             );
             IERC20(token1Address).safeIncreaseAllowance(
-                uniRouterAddress,
+                UNI_ROUTER_ADDRESS,
                 token1Amt
             );
             (uint256 amountA, uint256 amountB, uint256 liquidity) = IXRouter02(
-                uniRouterAddress
+                UNI_ROUTER_ADDRESS
             ).addLiquidity(
                     token0Address,
                     token1Address,
@@ -1519,7 +1519,7 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                     0,
                     0,
                     address(this),
-                    block.timestamp + routerDeadlineDuration
+                    block.timestamp + ROUTER_DEADLINE_DURATION
                 );
         }
 
@@ -1529,36 +1529,36 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     }
 
     function buyBack(uint256 _earnedAmt) internal returns (uint256) {
-        if (BUYBACK_FEE <= 0) {
+        if (buybackFee <= 0) {
             return _earnedAmt;
         }
 
-        uint256 buyBackAmt = _earnedAmt.mul(BUYBACK_FEE).div(PERCENT_DIVIDER);
+        uint256 buyBackAmt = _earnedAmt.mul(buybackFee).div(PERCENT_DIVIDER);
 
-        if (uniRouterAddress != buybackRouterAddress) {
+        if (UNI_ROUTER_ADDRESS != buybackRouterAddress) {
             // Example case: LP token on ApeSwap and NATIVE token on PancakeSwap
 
-            if (earnedAddress != wbnbAddress) {
+            if (earnedAddress != WBNB_ADDRESS) {
                 // First convert earn to wbnb
                 IERC20(earnedAddress).safeIncreaseAllowance(
-                    uniRouterAddress,
+                    UNI_ROUTER_ADDRESS,
                     buyBackAmt
                 );
 
-                IXRouter02(uniRouterAddress)
+                IXRouter02(UNI_ROUTER_ADDRESS)
                     .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                         buyBackAmt,
                         0,
                         earnedToWBNBPath,
                         address(this),
-                        block.timestamp + routerDeadlineDuration
+                        block.timestamp + ROUTER_DEADLINE_DURATION
                     );
             }
 
             // convert all wbnb to Native and burn them
-            uint256 wbnbAmt = IERC20(wbnbAddress).balanceOf(address(this));
+            uint256 wbnbAmt = IERC20(WBNB_ADDRESS).balanceOf(address(this));
             if (wbnbAmt > 0) {
-                IERC20(wbnbAddress).safeIncreaseAllowance(
+                IERC20(WBNB_ADDRESS).safeIncreaseAllowance(
                     buybackRouterAddress,
                     wbnbAmt
                 );
@@ -1567,57 +1567,57 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                     .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                         wbnbAmt,
                         0,
-                        WBNBToNATIVEPath,
-                        buyBackAddress,
-                        block.timestamp + routerDeadlineDuration
+                        wbnbToNativePath,
+                        BUY_BACK_ADDRESS,
+                        block.timestamp + ROUTER_DEADLINE_DURATION
                     );
             }
         } else {
             // Both LP and NATIVE token on same swap
 
             IERC20(earnedAddress).safeIncreaseAllowance(
-                uniRouterAddress,
+                UNI_ROUTER_ADDRESS,
                 buyBackAmt
             );
 
-            IXRouter02(uniRouterAddress)
+            IXRouter02(UNI_ROUTER_ADDRESS)
                 .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                     buyBackAmt,
                     0,
                     earnedToNATIVEPath,
-                    buyBackAddress,
-                    block.timestamp + routerDeadlineDuration
+                    BUY_BACK_ADDRESS,
+                    block.timestamp + ROUTER_DEADLINE_DURATION
                 );
         }
 
         return _earnedAmt.sub(buyBackAmt);
     }
 
-    function distributeFees(uint256 _earnedAmt) internal returns (uint256) {
-        if (_earnedAmt > 0) {
+    function distributeFees(uint256 earnedAmt) internal returns (uint256) {
+        if (earnedAmt > 0) {
             // Performance fee
             uint256 ctrlfee = 0;
             uint256 compfee = 0;
 
-            if (CONTROLLER_FEE > 0) {
-                ctrlfee = _earnedAmt.mul(CONTROLLER_FEE).div(PERCENT_DIVIDER);
+            if (controllerFee > 0) {
+                ctrlfee = earnedAmt.mul(controllerFee).div(PERCENT_DIVIDER);
                 IERC20(earnedAddress).safeTransfer(govAddress, ctrlfee);
             }
 
-            if (COMPOUND_FEE > 0) {
-                compfee = _earnedAmt.mul(COMPOUND_FEE).div(PERCENT_DIVIDER);
+            if (compoundFee > 0) {
+                compfee = earnedAmt.mul(compoundFee).div(PERCENT_DIVIDER);
                 IERC20(earnedAddress).safeTransfer(msg.sender, compfee);
             }
 
-            _earnedAmt = _earnedAmt.sub(ctrlfee.add(compfee));
+            earnedAmt = earnedAmt.sub(ctrlfee.add(compfee));
         }
 
-        return _earnedAmt;
+        return earnedAmt;
     }
 
     function convertDustToEarned() external whenNotPaused {
-        require(isAutoComp, "!isAutoComp");
-        require(!isSingleVault, "isSingleVault");
+        require(IS_AUTO_COMP, "!IS_AUTO_COMP");
+        require(!IS_SINGLE_VAULT, "IS_SINGLE_VAULT");
 
         // Converts dust tokens into earned tokens, which will be reinvested on the next earn().
 
@@ -1625,18 +1625,18 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         uint256 token0Amt = IERC20(token0Address).balanceOf(address(this));
         if (token0Address != earnedAddress && token0Amt > 0) {
             IERC20(token0Address).safeIncreaseAllowance(
-                uniRouterAddress,
+                UNI_ROUTER_ADDRESS,
                 token0Amt
             );
 
             // Swap all dust tokens to earned tokens
-            IXRouter02(uniRouterAddress)
+            IXRouter02(UNI_ROUTER_ADDRESS)
                 .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                     token0Amt,
                     0,
                     token0ToEarnedPath,
                     address(this),
-                    block.timestamp + routerDeadlineDuration
+                    block.timestamp + ROUTER_DEADLINE_DURATION
                 );
         }
 
@@ -1644,18 +1644,18 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         uint256 token1Amt = IERC20(token1Address).balanceOf(address(this));
         if (token1Address != earnedAddress && token1Amt > 0) {
             IERC20(token1Address).safeIncreaseAllowance(
-                uniRouterAddress,
+                UNI_ROUTER_ADDRESS,
                 token1Amt
             );
 
             // Swap all dust tokens to earned tokens
-            IXRouter02(uniRouterAddress)
+            IXRouter02(UNI_ROUTER_ADDRESS)
                 .swapExactTokensForTokensSupportingFeeOnTransferTokens(
                     token1Amt,
                     0,
                     token1ToEarnedPath,
                     address(this),
-                    block.timestamp + routerDeadlineDuration
+                    block.timestamp + ROUTER_DEADLINE_DURATION
                 );
         }
     }
@@ -1668,48 +1668,48 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         _unpause();
     }
 
-    function setControllerFee(uint256 _newControllerFee) external onlyAllowGov {
+    function setControllerFee(uint256 newControllerFee) external onlyAllowGov {
         require(
-            _newControllerFee.add(BUYBACK_FEE).add(COMPOUND_FEE) <= FEE_MAX,
+            newControllerFee.add(buybackFee).add(compoundFee) <= FEE_MAX,
             "too high"
         );
-        emit UpdateControllerFee(CONTROLLER_FEE, _newControllerFee);
-        CONTROLLER_FEE = _newControllerFee;
+        emit UpdateControllerFee(controllerFee, newControllerFee);
+        controllerFee = newControllerFee;
     }
 
-    function setbuyBackRate(uint256 _newBuyBackFee) external onlyAllowGov {
+    function setbuyBackRate(uint256 newBuyBackFee) external onlyAllowGov {
         require(
-            _newBuyBackFee.add(CONTROLLER_FEE).add(COMPOUND_FEE) <= FEE_MAX,
+            newBuyBackFee.add(controllerFee).add(compoundFee) <= FEE_MAX,
             "too high"
         );
-        emit UpdateBuybackFee(BUYBACK_FEE, _newBuyBackFee);
-        BUYBACK_FEE = _newBuyBackFee;
+        emit UpdateBuybackFee(buybackFee, newBuyBackFee);
+        buybackFee = newBuyBackFee;
     }
 
-    function setCompoundFee(uint256 _newCompoundFee) external onlyAllowGov {
+    function setCompoundFee(uint256 newCompoundFee) external onlyAllowGov {
         require(
-            _newCompoundFee.add(BUYBACK_FEE).add(CONTROLLER_FEE) <= FEE_MAX,
+            newCompoundFee.add(buybackFee).add(controllerFee) <= FEE_MAX,
             "too high"
         );
-        emit UpdateCompoundFee(COMPOUND_FEE, _newCompoundFee);
-        COMPOUND_FEE = _newCompoundFee;
+        emit UpdateCompoundFee(compoundFee, newCompoundFee);
+        compoundFee = newCompoundFee;
     }
 
-    function setGov(address _govAddress) external onlyAllowGov {
-        require(_govAddress != address(0), "govAddress cannot be 0");
-        emit ChangeGov(govAddress, _govAddress);
-        govAddress = _govAddress;
+    function setGov(address newgovAddress) external onlyAllowGov {
+        require(newgovAddress != address(0), "govAddress cannot be 0");
+        emit ChangeGov(govAddress, newgovAddress);
+        govAddress = newgovAddress;
     }
 
-    function setBuybackRouterAddress(address _buybackRouterAddress)
+    function setBuybackRouterAddress(address newbuybackRouterAddress)
         external
         onlyAllowGov
     {
         require(
-            _buybackRouterAddress != address(0),
+            newbuybackRouterAddress != address(0),
             "buybackRouterAddress cannot be 0"
         );
-        buybackRouterAddress = _buybackRouterAddress;
+        buybackRouterAddress = newbuybackRouterAddress;
     }
 
     function workerCompound() external view returns (uint256) {
@@ -1719,20 +1719,20 @@ contract StrategyV3_PCS is ERC20, Ownable, ReentrancyGuard, Pausable {
             address(this)
         );
         uint256 ToComp = BalanceTokens.add(Comp);
-        uint256 buyBackAmt = ToComp.mul(BUYBACK_FEE).div(PERCENT_DIVIDER);
+        uint256 buyBackAmt = ToComp.mul(buybackFee).div(PERCENT_DIVIDER);
         ToComp = ToComp.sub(buyBackAmt);
-        uint256 fee = ToComp.mul(COMPOUND_FEE).div(PERCENT_DIVIDER);
+        uint256 fee = ToComp.mul(compoundFee).div(PERCENT_DIVIDER);
 
         return fee;
     }
 
     function inCaseTokensGetStuck(
-        address _token,
-        uint256 _amount,
-        address _to
+        address token,
+        uint256 amount,
+        address to
     ) external onlyAllowGov {
-        require(_token != earnedAddress, "!safe");
-        require(_token != wantAddress, "!safe");
-        IERC20(_token).safeTransfer(_to, _amount);
+        require(token != earnedAddress, "!safe");
+        require(token != wantAddress, "!safe");
+        IERC20(token).safeTransfer(to, amount);
     }
 }
