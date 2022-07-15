@@ -1236,6 +1236,11 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     event UpdateBuybackFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateControllerFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateCompoundFee(uint256 indexed oldFee, uint256 indexed newFee);
+    event AddLiquidity(
+        uint256 indexed amountA,
+        uint256 indexed amountB,
+        uint256 indexed liquidity
+    );
     event Deposit(
         address indexed user,
         uint256 indexed newTotal,
@@ -1360,6 +1365,8 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     {
         uint256 _pool = balance();
 
+        emit Deposit(userAddress, wantLockedTotal, wantAmt);
+
         IERC20(wantAddress).safeTransferFrom(
             address(msg.sender),
             address(this),
@@ -1380,7 +1387,6 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
         sharesTotal = sharesTotal.add(shares);
 
-        emit Deposit(userAddress, wantLockedTotal, wantAmt);
         if (IS_AUTO_COMP) {
             _farm();
         } else {
@@ -1531,6 +1537,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                     address(this),
                     block.timestamp + ROUTER_DEADLINE_DURATION
                 );
+            emit AddLiquidity(amountA, amountB, liquidity);
         }
 
         lastEarnBlock = block.number;
