@@ -1499,6 +1499,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (IS_AUTO_COMP) {
             _farm();
         } else {
+            //slither-disable-next-line reentrancy-benign
             wantLockedTotal = wantLockedTotal.add(wantAmt);
         }
         return shares;
@@ -1550,6 +1551,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         }
         //slither-disable-next-line reentrancy-benign
         sharesTotal = sharesTotal.sub(wrapAmt);
+        //slither-disable-next-line reentrancy-benign
         wantLockedTotal = wantLockedTotal.sub(r);
         IERC20(wantAddress).safeTransfer(nativeFarmAddress, r);
 

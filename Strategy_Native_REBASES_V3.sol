@@ -692,9 +692,11 @@ contract ERC20 is Context, IERC20 {
         require(account != address(0), "ERC20: mint to the zero address");
 
         _beforeTokenTransfer(address(0), account, amount);
-
+        //slither-disable-next-line reentrancy-benign
         _totalSupply = _totalSupply.add(amount);
+        //slither-disable-next-line reentrancy-benign
         _balances[account] = _balances[account].add(amount);
+        //slither-disable-next-line reentrancy-events
         emit Transfer(address(0), account, amount);
     }
 
@@ -1298,15 +1300,16 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
             shares = (wantAmt.mul(totalSupply())).div(_pool);
         }
         _mint(msg.sender, shares);
-
+        //slither-disable-next-line reentrancy-benign
         sharesTotal = sharesTotal.add(shares);
 
         if (IS_NATIVE_VAULT) {
             _farm();
         } else {
+            //slither-disable-next-line reentrancy-benign
             wantLockedTotal = wantLockedTotal.add(wantAmt);
         }
-
+        //slither-disable-next-line reentrancy-events
         emit Deposit(userAddress, wantLockedTotal, wantAmt);
 
         return shares;
