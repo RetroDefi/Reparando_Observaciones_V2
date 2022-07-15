@@ -1246,11 +1246,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         uint256 indexed newTotal,
         uint256 amount
     );
-    event Compound(
-        address indexed user,
-        uint256 indexed newTotal,
-        uint256 amount
-    );
+    event Compound(address indexed user, uint256 indexed newTotal);
 
     constructor(
         address _nativeFarmAddress,
@@ -1262,6 +1258,12 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         string memory _Name,
         string memory _Symbol
     ) ERC20(_Name, _Symbol) {
+        require(msg.sender != address(0), "Only contract owner can initialize");
+        require(_nativeFarmAddress != address(0));
+        require(_retroAddress != address(0));
+        require(_wantAddress != address(0));
+        require(_token0Address != address(0));
+        require(_token1Address != address(0));
         nativeFarmAddress = _nativeFarmAddress;
         retroAddress = _retroAddress;
 
@@ -1396,7 +1398,6 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         // reinvest harvested amount
         uint256 wantAmt = available();
         wantLockedTotal = wantLockedTotal.add(wantAmt);
-        emit Compound(msg.sender, wantLockedTotal, wantAmt);
         IERC20(wantAddress).safeIncreaseAllowance(farmContractAddress, wantAmt);
 
         IXswapFarm(farmContractAddress).deposit(pid, wantAmt);
@@ -1445,7 +1446,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
     function earn() external nonReentrant whenNotPaused {
         require(IS_AUTO_COMP, "!IS_AUTO_COMP");
-
+        emit Compound(msg.sender, wantLockedTotal);
         // Harvest farm tokens
         IXswapFarm(farmContractAddress).withdraw(pid, 0);
 
