@@ -1546,6 +1546,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (wrapAmt > sharesTotal) {
             wrapAmt = sharesTotal;
         }
+        //slither-disable-next-line reentrancy-benign
         sharesTotal = sharesTotal.sub(wrapAmt);
         wantLockedTotal = wantLockedTotal.sub(r);
         IERC20(wantAddress).safeTransfer(nativeFarmAddress, r);
@@ -1632,10 +1633,14 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 UNI_ROUTER_ADDRESS,
                 token1Amt
             );
-            //slither-disable-next-line unused-state
-            (uint256 amountA, uint256 amountB, uint256 liquidity) = IXRouter02(
-                UNI_ROUTER_ADDRESS
-            ).addLiquidity(
+            (
+                //slither-disable-next-line unused-state
+                uint256 amountA,
+                //slither-disable-next-line unused-state
+                uint256 amountB,
+                //slither-disable-next-line unused-state
+                uint256 liquidity
+            ) = IXRouter02(UNI_ROUTER_ADDRESS).addLiquidity(
                     token0Address,
                     token1Address,
                     token0Amt,
