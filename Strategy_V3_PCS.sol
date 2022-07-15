@@ -1521,16 +1521,18 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 token1Amt
             );
 
-            IXRouter02(UNI_ROUTER_ADDRESS).addLiquidity(
-                token0Address,
-                token1Address,
-                token0Amt,
-                token1Amt,
-                0,
-                0,
-                address(this),
-                block.timestamp + ROUTER_DEADLINE_DURATION
-            );
+            (uint256 amountA, uint256 amountB, uint256 liquidity) = IXRouter02(
+                UNI_ROUTER_ADDRESS
+            ).addLiquidity(
+                    token0Address,
+                    token1Address,
+                    token0Amt,
+                    token1Amt,
+                    0,
+                    0,
+                    address(this),
+                    block.timestamp + ROUTER_DEADLINE_DURATION
+                );
         }
 
         lastEarnBlock = block.number;
