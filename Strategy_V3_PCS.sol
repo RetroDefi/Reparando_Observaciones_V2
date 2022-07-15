@@ -913,10 +913,11 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
         require(account != address(0), "ERC20: mint to the zero address");
 
         _beforeTokenTransfer(address(0), account, amount);
-
+        //slither-disable-next-line reentrancy-benign
         _totalSupply += amount;
         unchecked {
             // Overflow not possible: balance + amount is at most totalSupply + amount, which is checked above.
+            //slither-disable-next-line reentrancy-benign
             _balances[account] += amount;
         }
         //slither-disable-next-line reentrancy-events
@@ -1492,6 +1493,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         }
         _mint(msg.sender, shares);
 
+        //slither-disable-next-line reentrancy-benign
         sharesTotal = sharesTotal.add(shares);
 
         if (IS_AUTO_COMP) {
@@ -1633,14 +1635,11 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 UNI_ROUTER_ADDRESS,
                 token1Amt
             );
-            (
-                //slither-disable-next-line unused-state
-                uint256 amountA,
-                //slither-disable-next-line unused-state
-                uint256 amountB,
-                //slither-disable-next-line unused-state
-                uint256 liquidity
-            ) = IXRouter02(UNI_ROUTER_ADDRESS).addLiquidity(
+            //slither-disable-next-line unused-state
+            //solhint-disable-next-line no-unused-vars
+            (uint256 amountA, uint256 amountB, uint256 liquidity) = IXRouter02(
+                UNI_ROUTER_ADDRESS
+            ).addLiquidity(
                     token0Address,
                     token1Address,
                     token0Amt,
@@ -1652,6 +1651,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 );
         }
 
+        //slither-disable-next-line reentrancy-benign
         lastEarnBlock = block.number;
 
         _farm();
