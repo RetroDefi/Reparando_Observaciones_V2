@@ -74,7 +74,8 @@ library Address {
             address(this).balance >= value,
             "Address: insufficient balance for call"
         );
-        // slither-disable-next-line unchecked-lowlevel
+        //slither-disable-next-line unchecked-lowlevel
+        //slither-disable-next-line arbitrary-send-call-value
         (bool success, bytes memory returndata) = target.call{value: value}(
             data
         );
