@@ -487,7 +487,7 @@ contract Pausable is Context {
     /**
      * @dev Returns true if the contract is paused, and false otherwise.
      */
-    function paused() public view returns (bool) {
+    function paused() external view returns (bool) {
         return _paused;
     }
 
@@ -643,7 +643,7 @@ contract ERC20 is Context, IERC20 {
     /**
      * @dev Returns the name of the token.
      */
-    function name() public view virtual returns (string memory) {
+    function name() external view virtual returns (string memory) {
         return _name;
     }
 
@@ -651,7 +651,7 @@ contract ERC20 is Context, IERC20 {
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view virtual returns (string memory) {
+    function symbol() external view virtual returns (string memory) {
         return _symbol;
     }
 
@@ -668,7 +668,7 @@ contract ERC20 is Context, IERC20 {
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view virtual returns (uint8) {
+    function decimals() external view virtual returns (uint8) {
         return _decimals;
     }
 
@@ -683,7 +683,7 @@ contract ERC20 is Context, IERC20 {
      * @dev See {IERC20-balanceOf}.
      */
     function balanceOf(address account)
-        public
+        external
         view
         virtual
         override
@@ -701,7 +701,7 @@ contract ERC20 is Context, IERC20 {
      * - the caller must have a balance of at least `amount`.
      */
     function transfer(address recipient, uint256 amount)
-        public
+        external
         virtual
         override
         returns (bool)
@@ -714,7 +714,7 @@ contract ERC20 is Context, IERC20 {
      * @dev See {IERC20-allowance}.
      */
     function allowance(address owner, address spender)
-        public
+        external
         view
         virtual
         override
@@ -731,7 +731,7 @@ contract ERC20 is Context, IERC20 {
      * - `spender` cannot be the zero address.
      */
     function approve(address spender, uint256 amount)
-        public
+        external
         virtual
         override
         returns (bool)
@@ -757,7 +757,7 @@ contract ERC20 is Context, IERC20 {
         address sender,
         address recipient,
         uint256 amount
-    ) public virtual override returns (bool) {
+    ) external virtual override returns (bool) {
         _transfer(sender, recipient, amount);
         _approve(
             sender,
@@ -783,7 +783,7 @@ contract ERC20 is Context, IERC20 {
      * - `spender` cannot be the zero address.
      */
     function increaseAllowance(address spender, uint256 addedValue)
-        public
+        external
         virtual
         returns (bool)
     {
@@ -810,7 +810,7 @@ contract ERC20 is Context, IERC20 {
      * `subtractedValue`.
      */
     function decreaseAllowance(address spender, uint256 subtractedValue)
-        public
+        external
         virtual
         returns (bool)
     {
@@ -1378,13 +1378,12 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
         sharesTotal = sharesTotal.add(shares);
 
+        emit Deposit(userAddress, wantLockedTotal, wantAmt);
         if (IS_AUTO_COMP) {
             _farm();
         } else {
             wantLockedTotal = wantLockedTotal.add(wantAmt);
         }
-        emit Deposit(userAddress, wantLockedTotal, wantAmt);
-
         return shares;
     }
 
@@ -1417,6 +1416,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (b < r) {
             uint256 _withdraw = r.sub(b);
 
+            emit Withdraw(userAddress, wantLockedTotal, wrapAmt);
             if (IS_AUTO_COMP) {
                 IXswapFarm(farmContractAddress).withdraw(pid, _withdraw);
             }
@@ -1434,8 +1434,6 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         }
         sharesTotal = sharesTotal.sub(wrapAmt);
         wantLockedTotal = wantLockedTotal.sub(r);
-
-        emit Withdraw(userAddress, wantLockedTotal, wrapAmt);
         IERC20(wantAddress).safeTransfer(nativeFarmAddress, r);
 
         return r;
@@ -1539,12 +1537,12 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         _farm();
     }
 
-    function buyBack(uint256 _earnedAmt) internal returns (uint256) {
+    function buyBack(uint256 earnedAmt) internal returns (uint256) {
         if (buybackFee <= 0) {
-            return _earnedAmt;
+            return earnedAmt;
         }
 
-        uint256 buyBackAmt = _earnedAmt.mul(buybackFee).div(PERCENT_DIVIDER);
+        uint256 buyBackAmt = earnedAmt.mul(buybackFee).div(PERCENT_DIVIDER);
 
         if (UNI_ROUTER_ADDRESS != buybackRouterAddress) {
             // Example case: LP token on ApeSwap and NATIVE token on PancakeSwap
@@ -1601,7 +1599,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 );
         }
 
-        return _earnedAmt.sub(buyBackAmt);
+        return earnedAmt.sub(buyBackAmt);
     }
 
     function distributeFees(uint256 earnedAmt) internal returns (uint256) {
