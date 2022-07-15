@@ -1236,11 +1236,6 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     event UpdateBuybackFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateControllerFee(uint256 indexed oldFee, uint256 indexed newFee);
     event UpdateCompoundFee(uint256 indexed oldFee, uint256 indexed newFee);
-    event AddLiquidity(
-        uint256 indexed amountA,
-        uint256 indexed amountB,
-        uint256 indexed liquidity
-    );
     event Deposit(
         address indexed user,
         uint256 indexed newTotal,
@@ -1525,19 +1520,17 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 UNI_ROUTER_ADDRESS,
                 token1Amt
             );
-            (uint256 amountA, uint256 amountB, uint256 liquidity) = IXRouter02(
-                UNI_ROUTER_ADDRESS
-            ).addLiquidity(
-                    token0Address,
-                    token1Address,
-                    token0Amt,
-                    token1Amt,
-                    0,
-                    0,
-                    address(this),
-                    block.timestamp + ROUTER_DEADLINE_DURATION
-                );
-            emit AddLiquidity(amountA, amountB, liquidity);
+
+            IXRouter02(UNI_ROUTER_ADDRESS).addLiquidity(
+                token0Address,
+                token1Address,
+                token0Amt,
+                token1Amt,
+                0,
+                0,
+                address(this),
+                block.timestamp + ROUTER_DEADLINE_DURATION
+            );
         }
 
         lastEarnBlock = block.number;
