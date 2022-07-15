@@ -1500,6 +1500,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
             _farm();
         } else {
             //slither-disable-next-line reentrancy-benign
+            //slither-disable-next-line reentrancy-no-eth
             wantLockedTotal = wantLockedTotal.add(wantAmt);
         }
         return shares;
