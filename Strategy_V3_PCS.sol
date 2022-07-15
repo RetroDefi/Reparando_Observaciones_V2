@@ -1080,7 +1080,9 @@ interface IXRouter01 {
     function addLiquidity(
         address tokenA,
         address tokenB,
+        //slither-disable-next-line similar-names
         uint256 amountADesired,
+        //slither-disable-next-line similar-names
         uint256 amountBDesired,
         uint256 amountAMin,
         uint256 amountBMin,
@@ -1290,7 +1292,9 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
     address public farmContractAddress; // address of farm, eg, PCS, Thugs etc.
     uint256 public pid; // pid of pool in farmContractAddress
     address public wantAddress;
+    //slither-disable-next-line similar-names
     address public token0Address;
+    //slither-disable-next-line similar-names
     address public token1Address;
     address public earnedAddress;
     address public constant UNI_ROUTER_ADDRESS =
@@ -1319,13 +1323,18 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
     /* This is vanity address -  For instance an address 0x000000000000000000000000000000000000dEaD for which it's
        absolutely impossible to generate a private key with today's computers. */
+    //slither-disable-next-line too-many-digits
     address public constant BUY_BACK_ADDRESS =
         0x000000000000000000000000000000000000dEaD;
 
     address[] public earnedToNATIVEPath;
+    //slither-disable-next-line similar-names
     address[] public earnedToToken0Path;
+    //slither-disable-next-line similar-names
     address[] public earnedToToken1Path;
+    //slither-disable-next-line similar-names
     address[] public token0ToEarnedPath;
+    //slither-disable-next-line similar-names
     address[] public token1ToEarnedPath;
     address[] public earnedToWantPath;
     address[] public earnedToWBNBPath;
@@ -1352,7 +1361,9 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         address _retroAddress,
         uint256 _pid,
         address _wantAddress,
+        //slither-disable-next-line similar-names
         address _token0Address,
+        //slither-disable-next-line similar-names
         address _token1Address,
         string memory _Name,
         string memory _Symbol
@@ -1445,8 +1456,8 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
      * Returns an uint256 with 18 decimals of how much underlying asset one vault share represents.
      */
     function getPricePerFullShare() external view returns (uint256) {
+        //slither-disable-next-line incorrect-equality
         return
-            //slither-disable-next-line incorrect-equality
             totalSupply() == 0 ? 1e18 : balance().mul(1e18).div(totalSupply());
     }
 
@@ -1620,7 +1631,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 UNI_ROUTER_ADDRESS,
                 token1Amt
             );
-
+            //slither-disable-next-line unused-state
             (uint256 amountA, uint256 amountB, uint256 liquidity) = IXRouter02(
                 UNI_ROUTER_ADDRESS
             ).addLiquidity(

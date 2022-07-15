@@ -810,7 +810,9 @@ interface IPancakeRouter01 {
     function addLiquidity(
         address tokenA,
         address tokenB,
+        //slither-disable-next-line similar-names
         uint256 amountADesired,
+        //slither-disable-next-line similar-names
         uint256 amountBDesired,
         uint256 amountAMin,
         uint256 amountBMin,
@@ -1147,7 +1149,9 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     address public constant FARM_CONTRACT_ADDRESSS = address(0); // not used, funds stay on strategy address
     uint256 public pid; // not used
     address public wantAddress;
+    //slither-disable-next-line similar-names
     address public constant TOKEN0_ADDRESS = address(0); // not used
+    //slither-disable-next-line similar-names
     address public constant TOKEN1_ADDRESS = address(0); // not used
     address public earnedAddress;
     address public constant UNI_ROUTER_ADDRESS =
@@ -1176,13 +1180,18 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     /* This is vanity address -  For instance an address 0x000000000000000000000000000000000000dEaD for which it's
        absolutely impossible to generate a private key with today's computers. */
 
+    //slither-disable-next-line too-many-digits
     address public constant BUY_BACK_ADDRESS =
         address(0x000000000000000000000000000000000000dEaD);
 
     address[] public earnedToNATIVEPath; // not used
+    //slither-disable-next-line similar-names
     address[] public earnedToToken0Path; // not used
+    //slither-disable-next-line similar-names
     address[] public earnedToToken1Path; // not used
+    //slither-disable-next-line similar-names
     address[] public token0ToEarnedPath; // not used
+    //slither-disable-next-line similar-names
     address[] public token1ToEarnedPath; // not used
 
     event ChangeGov(address indexed oldGov, address indexed newGov);
@@ -1256,8 +1265,8 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
      * Returns an uint256 with 18 decimals of how much underlying asset one vault share represents.
      */
     function getPricePerFullShare() external view returns (uint256) {
+        //slither-disable-next-line incorrect-equality
         return
-            //slither-disable-next-line incorrect-equality
             totalSupply() == 0
                 ? 1e18
                 : wantLockedTotal.mul(1e18).div(totalSupply());
