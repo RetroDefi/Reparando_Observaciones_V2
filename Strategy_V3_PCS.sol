@@ -1513,7 +1513,8 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         require(IS_AUTO_COMP, "!IS_AUTO_COMP");
         // reinvest harvested amount
         uint256 wantAmt = available();
-        //slither-disable-next-line reentrancy-benign reentrancy-eth
+        //slither-disable-next-line reentrancy-benign
+        //slither-disable-next-line reentrancy-eth
         wantLockedTotal = wantLockedTotal.add(wantAmt);
         IERC20(wantAddress).safeIncreaseAllowance(farmContractAddress, wantAmt);
 
@@ -1552,7 +1553,8 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         }
         //slither-disable-next-line reentrancy-benign
         sharesTotal = sharesTotal.sub(wrapAmt);
-        //slither-disable-next-line reentrancy-benign reentrancy-no-eth
+        //slither-disable-next-line reentrancy-benign
+        //slither-disable-next-line reentrancy-no-eth
         wantLockedTotal = wantLockedTotal.sub(r);
         IERC20(wantAddress).safeTransfer(nativeFarmAddress, r);
 
