@@ -119,6 +119,7 @@ library Address {
         if (returndata.length > 0) {
             // The easiest way to bubble the revert reason is using memory via assembly
             /// @solidity memory-safe-assembly
+            //slither-disable-next-line assembly
             assembly {
                 let returndata_size := mload(returndata)
                 revert(add(32, returndata), returndata_size)
