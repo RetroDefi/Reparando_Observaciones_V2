@@ -1101,7 +1101,7 @@ contract MASTERSynth is Ownable, ReentrancyGuard {
         }
     }
 
-    function changeStartBlock(uint256 newstartBlock) external {
+    function changeStartBlock(uint256 newstartBlock) external onlyOwner {
         require(block.number < startBlock, "contract active");
         startBlock = newstartBlock;
     }
