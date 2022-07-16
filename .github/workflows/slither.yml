@@ -28,4 +28,3 @@ jobs:
         with:
           if: slither.outputs.sarif
           sarif_file: ${{ steps.slither.outputs.sarif }}
-          else: ${{ }}
