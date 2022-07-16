@@ -1329,7 +1329,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     {
         require(wrapAmt > 0, "_wantAmt <= 0");
 
-        uint256 r = (balance().mul(wrapAmt)).div(totalSupply());
+        uint256 r = wantLockedTotal.mul(wrapAmt).div(totalSupply());
         _burn(msg.sender, wrapAmt);
 
         uint256 b = IERC20(wantAddress).balanceOf(address(this));
