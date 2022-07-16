@@ -1370,6 +1370,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (BalanceRewards > 0) {
             uint256 ctrlfee = 0;
             uint256 compfee = 0;
+            uint256 buybfee = 0;
 
             if (controllerFee > 0) {
                 ctrlfee = BalanceRewards.mul(controllerFee).div(
@@ -1383,6 +1384,11 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
                 wantLockedTotal = wantLockedTotal.sub(compfee);
             }
 
+            if (buybackFee > 0) {
+                buybfee = BalanceRewards.mul(buybackFee).div(PERCENT_DIVIDER);
+                wantLockedTotal = wantLockedTotal.sub(buybfee);
+            }
+
             emit Compound(msg.sender, wantLockedTotal, compfee);
 
             if (ctrlfee > 0) {
@@ -1391,6 +1397,10 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
 
             if (compfee > 0) {
                 IERC20(wantAddress).safeTransfer(msg.sender, compfee);
+            }
+
+            if (buybfee > 0) {
+                IERC20(wantAddress).safeTransfer(BUY_BACK_ADDRESS, buybfee);
             }
         }
     }
