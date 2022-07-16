@@ -1364,6 +1364,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
         uint256 BalanceTokens = IERC20(wantAddress).balanceOf(address(this));
         if (BalanceTokens > wantLockedTotal) {
             BalanceRewards = BalanceTokens.sub(wantLockedTotal);
+            wantLockedTotal = BalanceTokens;
         }
 
         if (BalanceRewards > 0) {
