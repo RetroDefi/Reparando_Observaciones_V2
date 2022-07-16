@@ -1290,9 +1290,9 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
     bool public constant IS_SINGLE_VAULT = false;
     bool public constant IS_AUTO_COMP = true;
-
-    address public farmContractAddress; // address of farm, eg, PCS, Thugs etc.
-    uint256 public pid; // pid of pool in farmContractAddress
+    //slither-disable-next-line naming-convention
+    address public FARM_CONTRACT_ADDRESSS; // address of farm, eg, PCS, Thugs etc.
+    uint256 public pid; // pid of pool in FARM_CONTRACT_ADDRESSS
     address public wantAddress;
     //slither-disable-next-line similar-names
     address public token0Address;
@@ -1390,7 +1390,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 token1Address = _token1Address;
             }
 
-            farmContractAddress = 0x73feaa1eE314F8c655E354234017bE2193C9E24E;
+            FARM_CONTRACT_ADDRESSS = 0x73feaa1eE314F8c655E354234017bE2193C9E24E;
             pid = _pid;
             earnedAddress = 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82;
 
@@ -1520,9 +1520,12 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         //slither-disable-next-line reentrancy-benign
         //slither-disable-next-line reentrancy-eth
         wantLockedTotal = wantLockedTotal.add(wantAmt);
-        IERC20(wantAddress).safeIncreaseAllowance(farmContractAddress, wantAmt);
+        IERC20(wantAddress).safeIncreaseAllowance(
+            FARM_CONTRACT_ADDRESSS,
+            wantAmt
+        );
 
-        IXswapFarm(farmContractAddress).deposit(pid, wantAmt);
+        IXswapFarm(FARM_CONTRACT_ADDRESSS).deposit(pid, wantAmt);
     }
 
     function withdraw(address userAddress, uint256 wrapAmt)
@@ -1541,7 +1544,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
             emit Withdraw(userAddress, wantLockedTotal, wrapAmt);
             if (IS_AUTO_COMP) {
-                IXswapFarm(farmContractAddress).withdraw(pid, _withdraw);
+                IXswapFarm(FARM_CONTRACT_ADDRESSS).withdraw(pid, _withdraw);
             }
 
             uint256 _after = IERC20(wantAddress).balanceOf(address(this));
@@ -1573,7 +1576,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         require(IS_AUTO_COMP, "!IS_AUTO_COMP");
         emit Compound(msg.sender, wantLockedTotal);
         // Harvest farm tokens
-        IXswapFarm(farmContractAddress).withdraw(pid, 0);
+        IXswapFarm(FARM_CONTRACT_ADDRESSS).withdraw(pid, 0);
 
         // Converts farm tokens into want tokens
         uint256 earnedAmt = IERC20(earnedAddress).balanceOf(address(this));
@@ -1859,7 +1862,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
 
     function workerCompound() external view returns (uint256) {
         uint256 BalanceTokens = IERC20(earnedAddress).balanceOf(address(this));
-        uint256 Comp = IXswapFarm(farmContractAddress).pendingCake(
+        uint256 Comp = IXswapFarm(FARM_CONTRACT_ADDRESSS).pendingCake(
             pid,
             address(this)
         );
