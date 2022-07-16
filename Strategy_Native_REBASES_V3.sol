@@ -1148,7 +1148,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     bool public constant IS_CAKE_STAKING = false; // always set to FALSE
     bool public constant IS_NATIVE_VAULT = false; // always set to FALSE
 
-    address public constant FARM_CONTRACT_ADDRESSS = address(0); // not used, funds stay on strategy address
+    address public constant FARM_CONTRACT_ADDRESS = address(0); // not used, funds stay on strategy address
     uint256 public pid; // not used
     address public wantAddress;
     //slither-disable-next-line similar-names
