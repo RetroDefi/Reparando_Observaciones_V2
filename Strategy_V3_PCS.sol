@@ -1371,7 +1371,10 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         string memory _Symbol
     ) ERC20(_Name, _Symbol) {
         require(msg.sender != address(0), "Only contract owner can initialize");
-        require(_nativeFarmAddress != address(0));
+        require(
+            _nativeFarmAddress != address(0),
+            "Native farm address is not set"
+        );
         require(_retroAddress != address(0));
         require(_wantAddress != address(0));
         require(_token0Address != address(0));
