@@ -26,5 +26,5 @@ jobs:
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
         with:
-          if: steps.slither.outputs.sarif
+          if: results.sarif
           sarif_file: ${{ steps.slither.outputs.sarif }}
