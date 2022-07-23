@@ -1297,7 +1297,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
         if (totalSupply() == 0) {
             shares = wantAmt;
         } else {
-            shares = (wantAmt.mul(totalSupply())).div(_pool);
+            shares = (wantAmt.mul(totalSupply())).div(wantLockedTotal);
         }
         _mint(msg.sender, shares);
         //slither-disable-next-line reentrancy-benign
