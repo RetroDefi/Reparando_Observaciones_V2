@@ -1390,7 +1390,7 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
                 token1Address = _token1Address;
             }
 
-            FARM_CONTRACT_ADDRESS = 0x73feaa1eE314F8c655E354234017bE2193C9E24E;
+            FARM_CONTRACT_ADDRESS = 0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652;
             pid = _pid;
             earnedAddress = 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82;
 
