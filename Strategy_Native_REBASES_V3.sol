@@ -1171,7 +1171,7 @@ contract STRATNATIVERebase is ERC20, Ownable, ReentrancyGuard, Pausable {
     uint256 public wantLockedTotal = 0;
     uint256 public sharesTotal = 0;
 
-    uint256 public buybackFee = 70;
+    uint256 public buybackFee = 50;
     uint256 public controllerFee = 30;
     uint256 public compoundFee = 20;
 
