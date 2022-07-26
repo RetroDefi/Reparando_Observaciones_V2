@@ -1860,6 +1860,18 @@ contract STRATPCS is ERC20, Ownable, ReentrancyGuard, Pausable {
         buybackRouterAddress = newbuybackRouterAddress;
     }
 
+    function changeRetroAddress(address newRetroAddress) external onlyAllowGov {
+        require(newRetroAddress != address(0), "retroAddress cannot be 0");
+        require(newRetroAddress != retroAddress, "retroAddress cannot be same");
+        retroAddress = newRetroAddress;
+
+        earnedToNATIVEPath = [earnedAddress, WBNB_ADDRESS, newRetroAddress];
+        if (WBNB_ADDRESS == earnedAddress) {
+            earnedToNATIVEPath = [WBNB_ADDRESS, newRetroAddress];
+        }
+        wbnbToNativePath = [WBNB_ADDRESS, newRetroAddress];
+    }
+
     function workerCompound() external view returns (uint256) {
         uint256 BalanceTokens = IERC20(earnedAddress).balanceOf(address(this));
         uint256 Comp = IXswapFarm(FARM_CONTRACT_ADDRESS).pendingCake(
