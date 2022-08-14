@@ -1408,9 +1408,9 @@ contract STRATAPE is ERC20, Ownable, ReentrancyGuard, Pausable {
                 token1Address = _token1Address;
             }
 
-            FARM_CONTRACT_ADDRESS = 0xa5f8C5Dbd5F286960b9d90548680aE5ebFf07652;
+            FARM_CONTRACT_ADDRESS = 0x54aff400858Dcac39797a81894D9920f16972D1D;
             pid = _pid;
-            earnedAddress = 0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82;
+            earnedAddress = 0x5d47bAbA0d66083C52009271faF3F50DCc01023C;
 
             earnedToNATIVEPath = [earnedAddress, WMATIC_ADDRESS, retroAddress];
             if (WMATIC_ADDRESS == earnedAddress) {
