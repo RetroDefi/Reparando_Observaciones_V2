@@ -619,7 +619,7 @@ abstract contract Admin is Ownable {
             "Invalid Input"
         );
 
-        for (uint8 i = 0; i < stakedToken.length; i++) {
+        for (uint256 i = 0; i < stakedToken.length; i++) {
             require(
                 tokenDetails[stakedToken[i]].isExist &&
                     tokenDetails[rewardToken[i]].isExist,
@@ -644,7 +644,7 @@ abstract contract Admin is Ownable {
     ) public onlyOwner {
         tokensSequenceList[stakedToken] = new address[](0);
         require(tokenDetails[stakedToken].isExist, "Staked Token Not Exist");
-        for (uint8 i = 0; i < rewardTokenSequence.length; i++) {
+        for (uint256 i = 0; i < rewardTokenSequence.length; i++) {
             require(
                 rewardTokenSequence.length <= tokens.length,
                 "Invalid Input"
@@ -732,7 +732,7 @@ abstract contract Admin is Ownable {
     function updateIntervalDays(uint256[] memory _interval) public onlyOwner {
         intervalDays = new uint256[](0);
 
-        for (uint8 i = 0; i < _interval.length; i++) {
+        for (uint256 i = 0; i < _interval.length; i++) {
             uint256 noD = stakeDuration.div(DAYS);
             require(noD > _interval[i], "Invalid Interval Day");
             intervalDays.push(_interval[i]);
@@ -785,7 +785,7 @@ abstract contract Admin is Ownable {
         uint256[] memory rewards
     ) external onlyOwner returns (bool) {
         require(tokenAddresses.length == rewards.length, "Invalid elements");
-        for (uint8 v = 0; v < tokenAddresses.length; v++) {
+        for (uint256 v = 0; v < tokenAddresses.length; v++) {
             require(
                 tokenDetails[tokenAddresses[v]].isExist,
                 "Token is not exist"
@@ -1048,7 +1048,7 @@ contract SynthMixPoolV1 is Admin {
             rewardsEarned
         );
 
-        uint8 i = 1;
+        uint256 i = 1;
 
         while (i < intervalDays.length) {
             if (noOfDays[0] >= intervalDays[i]) {
@@ -1214,7 +1214,7 @@ contract SynthMixPoolV1 is Admin {
 
         tokensEarned[0] = rewardsEarned;
 
-        uint8 i = 1;
+        uint256 i = 1;
 
         while (i < intervalDays.length) {
             if (noOfDays[0] >= intervalDays[i]) {
@@ -1244,9 +1244,9 @@ contract SynthMixPoolV1 is Admin {
                         );
                         rewardsEarned = rewardsEarned.sub(refEarned);
                     }
-                }
-                tokensEarned[i] = rewardsEarned;
 
+                    tokensEarned[i] = rewardsEarned;
+                }
                 i = i + 1;
             } else {
                 break;
