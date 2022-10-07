@@ -3,7 +3,7 @@
 // File contracts/forwarder/IRelayRecipient.sol
 
 // SPDX-License-Identifier:MIT
-pragma solidity >=0.8.7;
+pragma solidity ^0.7.6;
 
 /**
  * a contract must implement this interface in order to support relayed transaction.
