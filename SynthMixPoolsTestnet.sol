@@ -578,7 +578,7 @@ abstract contract Admin is Ownable {
 
     constructor(address _owner) Ownable(_owner) {
         //stakeDuration = 90 days;
-        stakeDuration = 90 * DAYS;
+        stakeDuration = DAYS.mul(90);
         refPercentage = 2500000000000000000;
         optionableBenefit = 2;
     }
